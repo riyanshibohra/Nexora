@@ -13,3 +13,4 @@ xlrd
 tqdm
 huggingface_hub
 kaggle
+openml
