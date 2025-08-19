@@ -1,2 +1,15 @@
 fastapi==0.104.1
-uvicorn[standard]==0.24.0 
+uvicorn[standard]==0.24.0
+langchain-openai
+langchain-core
+tavily-python
+python-dotenv
+pandas
+numpy
+requests
+beautifulsoup4
+openpyxl
+xlrd 
+tqdm
+huggingface_hub
+kaggle
