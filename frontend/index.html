@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexora - Data Universe Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+      html, body, #root { height: 100%; margin: 0; background: #000; }
+      .hero {
+        position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+      }
+      .hero-inner {
+        text-align: center; color: #e8ebff; font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system;
+        opacity: 0; animation: fadeIn 1.6s ease forwards;
+        text-shadow: 0 2px 20px rgba(80,120,255,0.35);
+      }
+      .hero h1 { margin: 0; font-weight: 800; letter-spacing: 0.8px; font-size: clamp(26px, 4vw, 44px); }
+      .hero .subtitle { color: #c9cceb; margin-top: 8px; font-weight: 600; font-size: clamp(12px, 1.8vw, 16px); }
+      @keyframes fadeIn { to { opacity: 1; } }
+      .caption {
+        position: absolute; bottom: 30px; width: 100%; text-align: center; color: #cfcfcf;
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system; font-size: 14px; opacity: 0;
+        animation: fadeIn 2s ease 0.8s forwards;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+  </html>
+
+
