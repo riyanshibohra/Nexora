@@ -14,3 +14,5 @@ tqdm
 huggingface_hub
 kaggle
 openml
+python-dotenv==1.0.0
+pydantic==2.5.0
