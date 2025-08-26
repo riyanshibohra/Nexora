@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .agent import run_agent
@@ -10,6 +11,18 @@ from .db import init_db, store_from_agent_state, list_datasets, get_dataset_with
 
 
 app = FastAPI(title="Nexora API")
+
+# Allow local frontend dev server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class RunAgentRequest(BaseModel):
