@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import ResultsMap, { Dataset } from '../components/ResultsMap'
 import Starfield from '../components/Starfield'
 import DetailsDrawer from '../components/DetailsDrawer'
@@ -16,12 +16,14 @@ type RunState = {
 
 export default function Results() {
   const location = useLocation() as any
+  const navigate = useNavigate()
   const runPayload = (location?.state?.result || null) as RunState | null
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Dataset | null>(null)
   const [insightsOpen, setInsightsOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -50,6 +52,29 @@ export default function Results() {
 
   const runStatus = useMemo(() => runPayload?.state?.status ?? [], [runPayload])
 
+  async function handleNewSearch() {
+    setResetting(true)
+    try {
+      console.log('Resetting all data...')
+      const res = await fetch(`${API_BASE}/reset`, {
+        method: 'DELETE',
+      })
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      console.log('Reset successful:', data.message)
+      
+      // Navigate back to landing page
+      navigate('/')
+    } catch (err: any) {
+      console.error('Reset failed:', err)
+      // Still navigate even if reset fails
+      navigate('/')
+    } finally {
+      setResetting(false)
+    }
+  }
+
   return (
     <div className="universe" style={{ minHeight: '100vh' }}>
       <div className="layer" style={{ inset: 0, pointerEvents: 'none' }}>
@@ -62,7 +87,13 @@ export default function Results() {
           {runStatus && runStatus.length > 0 && (
             <button className="button-secondary" onClick={() => setInsightsOpen(true)}>✨ Generate Insights</button>
           )}
-          <Link to="/" className="button-primary" style={{ textDecoration: 'none' }}>New search</Link>
+          <button 
+            className="button-primary" 
+            onClick={handleNewSearch}
+            disabled={resetting}
+          >
+            {resetting ? 'Resetting...' : 'New search'}
+          </button>
         </div>
       </header>
 
