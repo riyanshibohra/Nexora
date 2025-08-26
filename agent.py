@@ -12,7 +12,6 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from tavily import TavilyClient
 from langgraph.graph import StateGraph, START, END
-from IPython.display import Image, display
 
 
 # Environment
@@ -415,12 +414,49 @@ graph.add_edge("get_metadata", "end_agent")
 
 final_graph = graph.compile()
 
-display(Image(final_graph.get_graph().draw_mermaid_png()))
+
+def run_agent(query: str) -> Dict[str, Any]:
+    """Run the agent pipeline and return the final state with results."""
+    initial_state: AgentState = {
+        "query": query,
+        "tavilySearchOutput": [],
+        "status": [],
+        "download_results": [],
+        "dataset_outputs": [],
+    }
+    # Execute graph and return final accumulated state
+    final_state = final_graph.invoke(initial_state)
+    # Convert pydantic models to dicts when present
+    def model_to_dict(x):
+        try:
+            return x.model_dump()  # type: ignore[attr-defined]
+        except Exception:
+            return x
+    out: Dict[str, Any] = {}
+    for k, v in (final_state or {}).items():
+        if isinstance(v, list):
+            out[k] = [model_to_dict(i) for i in v]
+        else:
+            out[k] = model_to_dict(v)
+    return out
 
 
-# Demo execution
-query = "climate change dataset"
-state = AgentState(query=query)
-for event in final_graph.stream(state):
-    print(event)
+if __name__ == "__main__":
+    # Optional visualization and demo run for notebooks/local testing
+    try:
+        from IPython.display import Image, display  # type: ignore
+        display(Image(final_graph.get_graph().draw_mermaid_png()))
+    except Exception:
+        pass
+
+    # CLI: require a user-provided query instead of a hardcoded demo
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the Nexora agent pipeline")
+    parser.add_argument("--query", required=True, help="Search query for datasets (e.g., 'air quality time series')")
+    args = parser.parse_args()
+
+    state = AgentState(query=args.query)
+    for event in final_graph.stream(state):
+        print(event)
 
