@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ResultsMap, { Dataset } from '../components/ResultsMap'
 import Starfield from '../components/Starfield'
-import DetailsDrawer from '../components/DetailsDrawer'
+import DatasetModal from '../components/DatasetModal'
 import InsightsModal from '../components/InsightsModal'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
@@ -132,7 +132,7 @@ export default function Results() {
         </div>
       </div>
 
-      <DetailsDrawer dataset={selected} onClose={() => setSelected(null)} />
+      <DatasetModal dataset={selected} onClose={() => setSelected(null)} />
       <InsightsModal open={insightsOpen} onClose={() => setInsightsOpen(false)} />
     </div>
   )
