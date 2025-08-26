@@ -344,9 +344,10 @@ def get_metadata(state: AgentState):
 
         prompt = (
             "You are analyzing ONE specific Kaggle dataset link.\n"
-            "Craft a dataset-specific 1–2 sentence description that references what the files and columns indicate.\n"
-            "Be concrete and unique to this dataset; mention dataset-specific hints (e.g., file names, label fields, text vs numeric, dates) if helpful.\n"
-            "Then choose the single best-use category for modeling from {classification, regression, clustering, time_series, text_generation, image_generation, other}.\n"
+            "Write a concise, 1-sentence description focusing on what the data represents (the subject matter and scope). "
+            "Do NOT include dataset names, file names, or column names. "
+            "Focus on the real-world content and purpose rather than technical details.\n"
+            "Then select the single best-use category for modeling from {classification, regression, clustering, time_series, text_generation, image_generation, other}.\n"
             "Output STRICT JSON only with keys 'description' and 'possibilities'. No preamble.\n\n"
             f"Dataset identification:\n"
             f"- source_url: {llm_context['source_url']}\n"
