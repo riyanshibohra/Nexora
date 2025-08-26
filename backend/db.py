@@ -8,7 +8,11 @@ from typing import Dict, Iterable, List, Optional
 import uuid
 
 
-DEFAULT_DB_PATH = os.environ.get("NEXORA_DB_PATH", os.path.join(os.path.dirname(__file__), "nexora.db"))
+# Keep DB file at repo root even though this module is in backend/
+DEFAULT_DB_PATH = os.environ.get(
+    "NEXORA_DB_PATH",
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), "nexora.db"),
+)
 
 
 @contextmanager
@@ -78,7 +82,6 @@ def upsert_dataset(
 ) -> str:
     with get_connection(db_path) as conn:
         cur = conn.cursor()
-        # Check if dataset exists by unique source_url
         cur.execute("SELECT id FROM datasets WHERE source_url = ?", (source_url,))
         row = cur.fetchone()
         if row:
@@ -113,7 +116,7 @@ def upsert_dataset(
 
 
 def upsert_file(
-    dataset_id: int,
+    dataset_id: str,
     file_path: str,
     file_format: Optional[str] = None,
     file_size: Optional[int] = None,
@@ -126,7 +129,6 @@ def upsert_file(
 ) -> str:
     with get_connection(db_path) as conn:
         cur = conn.cursor()
-        # Check existence by unique (dataset_id, file_path)
         cur.execute("SELECT id FROM files WHERE dataset_id = ? AND file_path = ?", (dataset_id, file_path))
         row = cur.fetchone()
         if row:
@@ -343,7 +345,6 @@ def list_datasets(db_path: str = DEFAULT_DB_PATH) -> List[Dict]:
 def reset_db(db_path: str = DEFAULT_DB_PATH) -> None:
     with get_connection(db_path) as conn:
         cur = conn.cursor()
-        # Drop tables to ensure schema (UUID TEXT PKs) is reapplied cleanly
         try:
             cur.execute("DROP TABLE IF EXISTS files;")
         except Exception:
@@ -353,7 +354,6 @@ def reset_db(db_path: str = DEFAULT_DB_PATH) -> None:
         except Exception:
             pass
         conn.commit()
-    # Recreate schema
     init_db(db_path=db_path)
 
 

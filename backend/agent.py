@@ -12,6 +12,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from tavily import TavilyClient
 from langgraph.graph import StateGraph, START, END
+from IPython.display import Image, display
 
 
 # Environment
@@ -152,10 +153,6 @@ def tavily_search_tool(state: AgentState):
 
 
 def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
-    """
-    Download each Kaggle URL into its own folder and return structured bundles for UI/analysis.
-    """
-
     urls = [tso.url for tso in state['tavilySearchOutput']]
 
     api = KaggleApi()
@@ -444,7 +441,6 @@ def run_agent(query: str) -> Dict[str, Any]:
 if __name__ == "__main__":
     # Optional visualization and demo run for notebooks/local testing
     try:
-        from IPython.display import Image, display  # type: ignore
         display(Image(final_graph.get_graph().draw_mermaid_png()))
     except Exception:
         pass
@@ -459,4 +455,5 @@ if __name__ == "__main__":
     state = AgentState(query=args.query)
     for event in final_graph.stream(state):
         print(event)
+
 

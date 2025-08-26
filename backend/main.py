@@ -5,8 +5,8 @@ from typing import Any, Dict
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from agent import run_agent
-from db import init_db, store_from_agent_state, list_datasets, get_dataset_with_files_by_url, reset_db
+from .agent import run_agent
+from .db import init_db, store_from_agent_state, list_datasets, get_dataset_with_files_by_url, reset_db
 
 
 app = FastAPI(title="Nexora API")
