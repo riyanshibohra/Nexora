@@ -5,3 +5,12 @@ __pycache__/
 data/
 
 node_modules/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+
+# Local DB
+nexora.db*
+
+test_2.ipynb
