@@ -2,7 +2,7 @@
 import React, { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Html } from '@react-three/drei'
+import { OrbitControls, Html, Line } from '@react-three/drei'
 
 export type Dataset = {
   id: string
@@ -94,6 +94,40 @@ function generateNodesScatter(datasets: Dataset[], viewportWidth: number, viewpo
   return { nodes, cell: { w: cellW, h: cellH } }
 }
 
+function createSubtleConnections(nodes: NodeSpec[]): [THREE.Vector3, THREE.Vector3][] {
+  const connections: [THREE.Vector3, THREE.Vector3][] = []
+  const connected = new Set<number>() // Track which nodes are already connected
+  
+  for (let i = 0; i < nodes.length; i++) {
+    // Skip if this node already has a connection
+    if (connected.has(i)) continue
+    
+    const currentNode = nodes[i]
+    let closestDistance = Infinity
+    let closestIndex = -1
+    
+    // Find the closest unconnected neighbor
+    for (let j = 0; j < nodes.length; j++) {
+      if (i === j || connected.has(j)) continue
+      
+      const distance = currentNode.position.distanceTo(nodes[j].position)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        closestIndex = j
+      }
+    }
+    
+    // Connect to the closest neighbor if found
+    if (closestIndex !== -1) {
+      connections.push([currentNode.position, nodes[closestIndex].position])
+      connected.add(i)
+      connected.add(closestIndex)
+    }
+  }
+  
+  return connections
+}
+
 
 
 function createHaloTexture(): THREE.Texture {
@@ -182,6 +216,7 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
     return datasets.map(d => (d.num_files - min) / span)
   }, [datasets])
 
+  const connections = useMemo(() => createSubtleConnections(nodes), [nodes])
   const [hovered, setHovered] = useState<Dataset | null>(null)
 
   // Subtle scene-wide gentle drift
@@ -198,6 +233,17 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
       <ambientLight intensity={0.6} />
       <pointLight position={[10, 10, 10]} intensity={0.9} color="#9fc1ff" />
       <group ref={groupRef} position={[0, -0.5, 0]}>
+        {/* Subtle complete connections */}
+        {connections.map((connection, idx) => (
+          <Line 
+            key={`connection-${idx}`} 
+            points={[connection[0], connection[1]]} 
+            color="#5a8bb0" 
+            opacity={0.25} 
+            transparent 
+            lineWidth={1.2}
+          />
+        ))}
         {nodes.map((n, idx) => (
           <CircleNode key={idx} node={n} onClick={onSelect} onHover={setHovered} baseSize={baseSize} weight={weights[idx] ?? 0.5} />
         ))}
