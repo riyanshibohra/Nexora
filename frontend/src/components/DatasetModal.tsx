@@ -23,13 +23,25 @@ function getSourceName(url: string): string {
   }
 }
 
-function formatFileSize(numFiles: number): string {
-  // Estimate size based on number of files (rough approximation)
-  const estimatedMB = numFiles * 15 // Rough estimate: 15MB per file
-  if (estimatedMB < 1024) {
-    return `${estimatedMB} MB`
+function formatFileSize(sizeInBytes: number | null | undefined): string {
+  if (!sizeInBytes || sizeInBytes === 0) {
+    return 'Unknown size'
   }
-  return `${(estimatedMB / 1024).toFixed(1)} GB`
+  
+  const bytes = sizeInBytes
+  const kb = bytes / 1024
+  const mb = kb / 1024
+  const gb = mb / 1024
+  
+  if (gb >= 1) {
+    return `${gb.toFixed(1)} GB`
+  } else if (mb >= 1) {
+    return `${Math.round(mb)} MB`
+  } else if (kb >= 1) {
+    return `${Math.round(kb)} KB`
+  } else {
+    return `${bytes} bytes`
+  }
 }
 
 function getTaskType(possibilities: string | null): string {
@@ -66,7 +78,7 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
   const title = titleFor(dataset)
   const sourceName = getSourceName(dataset.source_url)
   const taskType = getTaskType(dataset.possibilities)
-  const estimatedSize = formatFileSize(dataset.num_files)
+  const actualSize = formatFileSize(dataset.total_size_bytes)
   const description = truncateDescription(dataset.description)
 
   return (
@@ -79,14 +91,14 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
         {/* Header Section */}
         <div className="dataset-header">
           <div className="dataset-title">{title}</div>
-          <div className="dataset-source">{sourceName} • Last updated recently</div>
+          <div className="dataset-source">{sourceName}</div>
         </div>
 
         {/* Stats Chips */}
         <div className="dataset-stats">
           <div className="dataset-chip">{taskType}</div>
-          <div className="dataset-chip">{dataset.num_files} Files</div>
-          <div className="dataset-chip">Size: {estimatedSize}</div>
+          <div className="dataset-chip">No. of Files: {dataset.num_files}</div>
+          <div className="dataset-chip">Size: {actualSize}</div>
         </div>
 
         {/* Description */}

@@ -322,9 +322,12 @@ def list_datasets(db_path: str = DEFAULT_DB_PATH) -> List[Dict]:
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, source_url, source_id, display_name, description, possibilities, num_files, created_at, updated_at
-            FROM datasets
-            ORDER BY id DESC;
+            SELECT d.id, d.source_url, d.source_id, d.display_name, d.description, d.possibilities, d.num_files, d.created_at, d.updated_at,
+                   COALESCE(SUM(f.file_size), 0) as total_size_bytes
+            FROM datasets d
+            LEFT JOIN files f ON d.id = f.dataset_id
+            GROUP BY d.id, d.source_url, d.source_id, d.display_name, d.description, d.possibilities, d.num_files, d.created_at, d.updated_at
+            ORDER BY d.id DESC;
             """
         )
         rows = cur.fetchall()
@@ -338,6 +341,7 @@ def list_datasets(db_path: str = DEFAULT_DB_PATH) -> List[Dict]:
             "num_files",
             "created_at",
             "updated_at",
+            "total_size_bytes",
         ]
         return [{k: v for k, v in zip(keys, r)} for r in rows]
 

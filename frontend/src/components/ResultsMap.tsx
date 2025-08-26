@@ -12,6 +12,7 @@ export type Dataset = {
   description?: string | null
   possibilities?: string | null
   num_files: number
+  total_size_bytes?: number | null
 }
 
 type NodeSpec = {

@@ -543,6 +543,7 @@ body {
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(115, 179, 255, 0.2);
+  text-align: center;
 }
 
 .dataset-title {
@@ -565,6 +566,7 @@ body {
   gap: 12px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .dataset-chip {
@@ -618,6 +620,9 @@ body {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dataset-button-primary {
