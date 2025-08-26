@@ -582,6 +582,74 @@ body {
 .hovercard-sub { font-size: 12px; color: #a9c7ff; opacity: 0.9; margin-bottom: 6px; }
 .hovercard-note { font-size: 11px; color: var(--ink-weak); }
 
+/* Enhanced planet tooltip */
+.planet-tooltip {
+  background: linear-gradient(135deg, rgba(15, 25, 45, 0.95), rgba(20, 30, 50, 0.9));
+  border: 1px solid rgba(115, 179, 255, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(115, 179, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  min-width: 200px;
+  max-width: 320px;
+  position: relative;
+  animation: tooltipFadeIn 0.2s ease-out;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.planet-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(115, 179, 255, 0.4), transparent);
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #eaf2ff;
+  margin-bottom: 6px;
+  text-shadow: 0 0 8px rgba(115, 179, 255, 0.3);
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.tooltip-action {
+  font-size: 11px;
+  color: #a9c7ff;
+  opacity: 0.8;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tooltip-action::before {
+  content: '→';
+  font-style: normal;
+  color: rgba(115, 179, 255, 0.6);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Cinematic layout */
 .cine-topbar { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: linear-gradient(180deg, rgba(5,10,20,0.9), rgba(5,10,20,0.3), transparent); z-index: 20; }
 .cine-actions { display: flex; gap: 8px; align-items: center; }

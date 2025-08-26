@@ -218,6 +218,17 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
 
   const connections = useMemo(() => createSubtleConnections(nodes), [nodes])
   const [hovered, setHovered] = useState<Dataset | null>(null)
+  const [hoveredNode, setHoveredNode] = useState<NodeSpec | null>(null)
+  
+  const handleHover = (dataset: Dataset | null) => {
+    setHovered(dataset)
+    if (dataset) {
+      const node = nodes.find(n => n.dataset.id === dataset.id)
+      setHoveredNode(node || null)
+    } else {
+      setHoveredNode(null)
+    }
+  }
 
   // Subtle scene-wide gentle drift
   useFrame(({ clock }) => {
@@ -245,16 +256,15 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
           />
         ))}
         {nodes.map((n, idx) => (
-          <CircleNode key={idx} node={n} onClick={onSelect} onHover={setHovered} baseSize={baseSize} weight={weights[idx] ?? 0.5} />
+          <CircleNode key={idx} node={n} onClick={onSelect} onHover={handleHover} baseSize={baseSize} weight={weights[idx] ?? 0.5} />
         ))}
       </group>
       <OrbitControls enableDamping dampingFactor={0.06} rotateSpeed={0.25} zoomSpeed={0.6} panSpeed={0.5} minDistance={14} maxDistance={90} enableRotate={false} />
-      {hovered && (
-        <Html position={[0, -12.5, 0]}>
-          <div className="hovercard">
-            <div className="hovercard-title">{titleFor(hovered)}</div>
-            <div className="hovercard-sub">{hovered.possibilities ? `Type: ${hovered.possibilities}` : 'Type: —'} • Files: {hovered.num_files}</div>
-            <div className="hovercard-note">Click to open full details</div>
+      {hovered && hoveredNode && (
+        <Html position={[hoveredNode.position.x + 5, hoveredNode.position.y + 1.5, hoveredNode.position.z]} center>
+          <div className="planet-tooltip">
+            <div className="tooltip-title">{titleFor(hovered)}</div>
+            <div className="tooltip-action">Click to open full details</div>
           </div>
         </Html>
       )}
