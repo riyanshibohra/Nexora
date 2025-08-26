@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Starfield from '../components/Starfield'
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
 
@@ -38,8 +39,9 @@ export default function Landing() {
 
   return (
     <div className="universe" data-stage={stage}>
-      <div className="layer stars" />
-      <div className="layer twinkle" />
+      <div className="layer" style={{ inset: 0, pointerEvents: 'none' }}>
+        <Starfield />
+      </div>
       {stage === 'intro' ? (
         <div className="content fade-in">
           <section className="hero">

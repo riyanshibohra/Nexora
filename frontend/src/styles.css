@@ -4,6 +4,8 @@
   --ink-weak: #9fb6d3;
   --ink-strong: #eaf2ff;
   --brand: #73b3ff;
+  --brand-2: #7de0ff;
+  --brand-3: #a08bff;
 }
 
 html, body, #root {
@@ -12,8 +14,8 @@ html, body, #root {
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  background: var(--bg-deep);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: #000; /* true space black */
   color: var(--ink-strong);
 }
 
@@ -22,14 +24,15 @@ body {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background: radial-gradient(1200px 800px at 85% 5%, rgba(70,110,225,0.12), transparent 60%),
-              radial-gradient(900px 700px at 15% 90%, rgba(90,40,190,0.16), transparent 62%),
-              radial-gradient(700px 600px at 5% 25%, rgba(0,120,170,0.10), transparent 65%),
-              var(--bg-ink);
+  background: radial-gradient(1400px 900px at 82% 8%, rgba(70,110,225,0.10), transparent 60%),
+              radial-gradient(1100px 800px at 12% 92%, rgba(130,60,210,0.14), transparent 62%),
+              radial-gradient(800px 700px at 8% 22%, rgba(0,140,190,0.10), transparent 65%),
+              radial-gradient(900px 900px at 50% 50%, rgba(12,18,30,1), rgba(7,11,18,1));
 }
 
 /* Star layers */
 .layer { position: absolute; inset: -10% -10% -10% -10%; pointer-events: none; }
+.canvas3d { inset: 0; filter: drop-shadow(0 0 12px rgba(115,179,255,0.1)); pointer-events: auto; }
 .stars {
   background-image:
     radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8) 50%, transparent 51%),
@@ -54,7 +57,28 @@ body {
   animation: twinkle 2.4s ease-in-out infinite alternate;
   opacity: .22;
 }
+/* deeper star layer for parallax */
+.stars-deep {
+  background-image:
+    radial-gradient(1px 1px at 15% 10%, rgba(255,255,255,0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 20%, rgba(255,255,255,0.30) 50%, transparent 51%),
+    radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.32) 50%, transparent 51%),
+    radial-gradient(1px 1px at 60% 30%, rgba(255,255,255,0.28) 50%, transparent 51%);
+  background-size: 1000px 900px;
+  opacity: .18;
+  animation: star-pan-slow 320s linear infinite;
+}
+
+/* faint nebula glows */
+.nebula {
+  background:
+    radial-gradient(800px 600px at 80% 20%, rgba(115,179,255,0.10), transparent 60%),
+    radial-gradient(900px 700px at 20% 85%, rgba(125,224,255,0.08), transparent 62%),
+    radial-gradient(700px 700px at 50% 50%, rgba(160,139,255,0.06), transparent 65%);
+  mix-blend-mode: screen;
+}
 @keyframes star-pan { to { transform: translate3d(350px, 280px, 0); } }
+@keyframes star-pan-slow { to { transform: translate3d(200px, 150px, 0); } }
 @keyframes twinkle { from { opacity: .10; } to { opacity: .35; } }
 
 /* Motion */
@@ -67,7 +91,7 @@ body {
   font-size: clamp(40px, 8vw, 84px);
   letter-spacing: 0.02em;
   margin: 0 0 12px 0;
-  text-shadow: 0 2px 18px rgba(115,179,255,0.18);
+  text-shadow: 0 2px 18px rgba(115,179,255,0.18), 0 0 60px rgba(115,179,255,0.08);
 }
 .brand-sub {
   margin: 0 0 30px 0;
@@ -87,8 +111,8 @@ body {
 .cta:hover { border-color: rgba(255,255,255,0.24); }
 
 /* Search layout after fade */
-.content { position: relative; min-height: 100vh; padding: 24px; }
-.hero { display: grid; place-items: center; min-height: 60vh; }
+.content { position: relative; min-height: 100vh; padding: 24px; display: grid; place-items: center; }
+.hero { display: grid; place-items: center; margin-top: -2vh; }
 .stack { text-align: center; }
 .search { display: grid; justify-content: center; gap: 14px; opacity: 0; transform: translateY(10px); transition: opacity 800ms ease, transform 800ms ease; }
 .search-row { display: flex; gap: 10px; }
@@ -100,17 +124,17 @@ body {
   background: linear-gradient(180deg, #0d1422, #0b1220);
   color: var(--ink-strong);
   outline: none;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 9999px rgba(255,255,255,0.01);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 9999px rgba(255,255,255,0.02), 0 0 0 1px rgba(115,179,255,0.05);
 }
 .button-primary {
   padding: 14px 18px;
   border-radius: 10px;
-  background: var(--brand);
+  background: linear-gradient(180deg, var(--brand), var(--brand-2));
   border: none;
   color: #08101c;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(115,179,255,0.25);
+  box-shadow: 0 10px 30px rgba(115,179,255,0.25), 0 0 40px rgba(115,179,255,0.25);
 }
 
 /* Stage transitions */
