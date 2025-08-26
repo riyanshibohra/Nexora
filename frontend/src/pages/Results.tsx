@@ -1,31 +1,108 @@
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, Link } from 'react-router-dom'
+import ResultsMap, { Dataset } from '../components/ResultsMap'
+import Starfield from '../components/Starfield'
+import DetailsDrawer from '../components/DetailsDrawer'
+import InsightsModal from '../components/InsightsModal'
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000'
+
+type DatasetsResponse = { datasets: Dataset[] }
+
+type RunState = {
+  dataset_ids?: string[]
+  state?: { status?: string[] }
+}
 
 export default function Results() {
   const location = useLocation() as any
-  const result = location?.state?.result
+  const runPayload = (location?.state?.result || null) as RunState | null
+  const [datasets, setDatasets] = useState<Dataset[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Dataset | null>(null)
+  const [insightsOpen, setInsightsOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(`${API_BASE}/datasets`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as DatasetsResponse
+        if (!cancelled) {
+          const ids = (runPayload?.dataset_ids || []) as string[]
+          const all = data.datasets || []
+          const filtered = ids && ids.length > 0 ? all.filter(d => ids.includes(d.id)) : all
+          setDatasets(filtered)
+        }
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? 'Failed to load datasets')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [runPayload])
+
+  const runStatus = useMemo(() => runPayload?.state?.status ?? [], [runPayload])
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0f16', color: 'white', padding: 24 }}>
-      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2>Nexora</h2>
-          <Link to="/" style={{ color: '#4da3ff' }}>New search</Link>
-        </div>
-        {!result ? (
-          <p>No result payload. Start from the landing page.</p>
-        ) : (
-          <div>
-            <h3 style={{ marginBottom: 8 }}>Run summary</h3>
-            <pre style={{ background: '#0f1522', padding: 16, borderRadius: 8, overflow: 'auto' }}>
-{JSON.stringify({
-  dataset_ids: result?.dataset_ids,
-  status: result?.state?.status,
-}, null, 2)}
-            </pre>
-          </div>
-        )}
+    <div className="universe" style={{ minHeight: '100vh' }}>
+      <div className="layer" style={{ inset: 0, pointerEvents: 'none' }}>
+        <Starfield />
       </div>
+
+      <header className="cine-topbar">
+        <h2 className="brand-title" style={{ fontSize: '28px', margin: 0 }}>Nexora</h2>
+        <div className="cine-actions">
+          {runStatus && runStatus.length > 0 && (
+            <button className="button-secondary" onClick={() => setInsightsOpen(true)}>✨ Generate Insights</button>
+          )}
+          <Link to="/" className="button-primary" style={{ textDecoration: 'none' }}>New search</Link>
+        </div>
+      </header>
+
+      <div className="results-layout">
+        <div className="results-body">
+          <div className="results-map">
+            {loading ? (
+              <div className="loading">Loading datasets…</div>
+            ) : error ? (
+              <div className="error">{error}</div>
+            ) : datasets.length === 0 ? (
+              <div className="empty">No datasets yet. Run a search on the landing page.</div>
+            ) : (
+              <ResultsMap datasets={datasets} onSelect={setSelected} />
+            )}
+          </div>
+
+          <div className="results-sidebar">
+            <div className="summary-panel">
+              <div className="summary-title">Summary View</div>
+              <div className="summary-section">
+                <div className="summary-sub">AI-Generated Quick Insights</div>
+                <div className="summary-placeholder">Coming soon</div>
+                <div className="summary-actions">
+                  <button className="button-secondary" onClick={() => setInsightsOpen(true)}>✨ Generate Insights</button>
+                </div>
+              </div>
+              {runStatus && runStatus.length > 0 && (
+                <div className="summary-section">
+                  <div className="summary-sub">Run status</div>
+                  <pre className="status-log">{runStatus.join('\n')}</pre>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <DetailsDrawer dataset={selected} onClose={() => setSelected(null)} />
+      <InsightsModal open={insightsOpen} onClose={() => setInsightsOpen(false)} />
     </div>
   )
 }
