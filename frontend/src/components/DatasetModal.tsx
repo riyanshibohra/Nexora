@@ -149,7 +149,12 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
           >
             View on Kaggle
           </a>
-          <button className="dataset-button dataset-button-secondary" disabled>
+          <button className="dataset-button dataset-button-secondary" onClick={() => {
+            const url = new URL(window.location.origin)
+            url.pathname = '/analysis'
+            url.searchParams.set('source_url', ds.source_url)
+            window.location.href = url.toString()
+          }}>
             Explore Dataset (Analysis)
           </button>
           <button className="dataset-button dataset-button-secondary" onClick={handleDownload}>

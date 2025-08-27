@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from .agent import run_agent
@@ -125,4 +125,77 @@ def download_dataset_zip(source_url: str, background_tasks: BackgroundTasks) -> 
 
     background_tasks.add_task(_cleanup, zip_path, tmp_dir)
     return FileResponse(zip_path, media_type="application/zip", filename=f"{base}.zip")
+
+
+@app.get("/file-preview")
+def file_preview(source_url: str, file_name: str, limit: int = 50) -> Dict[str, Any]:
+    ds = get_dataset_with_files_by_url(source_url)
+    if not ds:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    files = ds.get("files") or []
+    path = None
+    for f in files:
+        fp = f.get("file_path")
+        if fp and fp.endswith(file_name):
+            path = fp
+            break
+    if not path:
+        raise HTTPException(status_code=404, detail="File not found in dataset")
+
+    import os
+    import csv
+    import json
+
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail="File missing on server")
+
+    rows: List[Dict[str, Any]] = []
+    headers: List[str] = []
+    try:
+        if path.lower().endswith('.csv'):
+            with open(path, 'r', encoding='utf-8', newline='') as f:
+                reader = csv.DictReader(f)
+                headers = list(reader.fieldnames or [])
+                for i, r in enumerate(reader):
+                    if i >= limit: break
+                    rows.append({k: (v if v is not None else '') for k, v in r.items()})
+        elif path.lower().endswith('.json'):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if isinstance(data, list) and data:
+                sample = data[:limit]
+                headers = list({k for item in sample if isinstance(item, dict) for k in item.keys()})
+                for item in sample:
+                    if isinstance(item, dict):
+                        rows.append({k: item.get(k, '') for k in headers})
+        else:
+            # Unsupported preview
+            return {"headers": [], "rows": []}
+    except Exception:
+        return {"headers": [], "rows": []}
+
+    return {"headers": headers, "rows": rows}
+
+
+@app.get("/download-file")
+def download_single_file(source_url: str, file_name: str) -> FileResponse:
+    ds = get_dataset_with_files_by_url(source_url)
+    if not ds:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    files = ds.get("files") or []
+    path = None
+    for f in files:
+        fp = f.get("file_path")
+        if fp and fp.endswith(file_name):
+            path = fp
+            break
+    if not path:
+        raise HTTPException(status_code=404, detail="File not found in dataset")
+
+    import os
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail="File missing on server")
+
+    safe = _slugify_filename(file_name)
+    return FileResponse(path, filename=safe)
 
