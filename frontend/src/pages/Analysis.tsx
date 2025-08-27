@@ -234,7 +234,7 @@ export default function Analysis() {
               </section>
 
               <section className="card">
-                <div className="summary-sub" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="summary-sub columns-types-header">
                   <span>Columns & Types</span>
                   <div className="sort-controls">
                     <button className="pill-action" data-active={sortBy==='name'} onClick={() => setSortBy('name')}>Sort: Name</button>

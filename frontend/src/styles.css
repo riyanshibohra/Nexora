@@ -1079,15 +1079,17 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 4px;
   text-align: left;
   width: 100%;
 }
 
-.summary-sub::before {
-  content: '✨';
-  font-size: 12px;
+.summary-sub.columns-types-header {
+  align-items: center;
+  justify-content: space-between;
 }
+
+
 
 .summary-placeholder { 
   color: var(--ink-weak); 
