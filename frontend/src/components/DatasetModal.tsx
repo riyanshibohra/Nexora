@@ -82,13 +82,36 @@ function buildFallbackDescription(dataset: Dataset, taskType: string): string {
 export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | null, onClose: () => void }) {
   if (!dataset) return null
 
-  const title = titleFor(dataset)
-  const sourceName = getSourceName(dataset.source_url)
-  const taskType = getTaskType(dataset.possibilities)
-  const actualSize = formatFileSize(dataset.total_size_bytes)
-  const description = (dataset.description && dataset.description.trim().length > 0)
-    ? dataset.description
-    : buildFallbackDescription(dataset, taskType)
+  const ds: Dataset = dataset
+  const title = titleFor(ds)
+  const sourceName = getSourceName(ds.source_url)
+  const taskType = getTaskType(ds.possibilities ?? null)
+  const actualSize = formatFileSize(ds.total_size_bytes)
+  const description = (ds.description && ds.description.trim().length > 0)
+    ? ds.description
+    : buildFallbackDescription(ds, taskType)
+
+  async function handleDownload() {
+    try {
+      const url = new URL(import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8000')
+      url.pathname = '/download-dataset-zip'
+      url.searchParams.set('source_url', ds.source_url)
+
+      const res = await fetch(url.toString())
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      const downloadUrl = window.URL.createObjectURL(blob)
+      a.href = downloadUrl
+      a.download = `${title}.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+    } catch (e) {
+      console.error('Download failed', e)
+    }
+  }
 
   return (
     <div className="dataset-modal-backdrop" onClick={onClose}>
@@ -119,8 +142,8 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
         {/* Action Buttons */}
         <div className="dataset-actions">
           <a 
-            className="dataset-button dataset-button-primary" 
-            href={dataset.source_url} 
+            className="dataset-button dataset-button-secondary" 
+            href={ds.source_url} 
             target="_blank" 
             rel="noreferrer"
           >
@@ -129,7 +152,7 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
           <button className="dataset-button dataset-button-secondary" disabled>
             Explore Dataset (Analysis)
           </button>
-          <button className="dataset-button dataset-button-secondary" disabled>
+          <button className="dataset-button dataset-button-secondary" onClick={handleDownload}>
             Download Dataset
           </button>
         </div>
