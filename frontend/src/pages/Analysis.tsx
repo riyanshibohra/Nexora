@@ -118,13 +118,15 @@ export default function Analysis() {
 
   return (
     <div className="universe" style={{ minHeight: '100vh' }}>
-      <div className="results-layout" style={{ gridTemplateColumns: '280px 1fr' }}>
+      <div className="results-layout analysis-page" style={{ gridTemplateColumns: '280px 1fr' }}>
         <header className="results-topbar analysis-topbar" style={{ gridColumn: '1 / -1', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="header-left">
             <a href="/results" className="backlink">← Back to Results</a>
           </div>
-          <h2 className="analysis-title">{title} – Analysis</h2>
-          <div className="toolbar-actions">
+          <div className="header-center">
+            <h2 className="analysis-title">{title} – Analysis</h2>
+          </div>
+          <div className="header-right">
             <button className="pill-action" onClick={async () => {
               if (!dataset || !active) return
               const fname = active.file_path.split('/').slice(-1)[0]
@@ -147,7 +149,6 @@ export default function Analysis() {
                 console.error('Download failed', e)
               }
             }}>Download file</button>
-            <button className="pill-action" disabled>Generate report</button>
             <a className="pill-action" href={dataset?.source_url} target="_blank" rel="noreferrer">View on Source</a>
           </div>
         </header>
@@ -165,7 +166,7 @@ export default function Analysis() {
           </div>
         </aside>
 
-        <main className="results-map" style={{ padding: 16 }}>
+        <main className="analysis-main">
           {loading ? (
             <div className="loading">Loading…</div>
           ) : error ? (

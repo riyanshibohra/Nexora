@@ -424,6 +424,115 @@ body {
 .results-hint { position: absolute; left: 16px; bottom: 16px; padding: 8px 12px; border-radius: 999px; background: rgba(13,20,34,0.8); border: 1px solid rgba(115,179,255,0.35); color: #a9c7ff; font-size: 12px; display: flex; align-items: center; gap: 8px; pointer-events: none; backdrop-filter: blur(6px); }
 .results-hint::before { content: 'ⓘ'; font-size: 12px; color: rgba(115,179,255,0.9); }
 
+/* Analysis left panel container inside results-map to keep same aspect and allow scroll */
+.analysis-inner { position: absolute; inset: 0; padding: 16px; overflow: auto; }
+
+/* Analysis page responsive layout - everything fits in viewport */
+.analysis-page { 
+  gap: 16px; 
+  padding: 0 16px 16px 16px; 
+  height: 100vh; 
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.analysis-main { 
+  background: linear-gradient(180deg, #0d1422, #0b1220); 
+  border: 1px solid #253044; 
+  border-radius: 12px; 
+  box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02), 0 8px 40px rgba(0,0,0,0.35); 
+  height: calc(100vh - 88px); 
+  overflow: hidden;
+  padding: 16px; 
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Make analysis grid fit available space */
+.analysis-page .analysis-grid { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 12px; 
+  height: 100%;
+  overflow: hidden;
+}
+
+.analysis-page .card { 
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 2px solid rgba(115, 179, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.analysis-page .card:nth-child(1),
+.analysis-page .card:nth-child(2) {
+  height: 190px;
+  margin-bottom: 8px;
+}
+
+.analysis-page .card:nth-child(3),
+.analysis-page .card:nth-child(4) {
+  height: 170px;
+  margin-bottom: 8px;
+}
+
+.analysis-page .card:last-child { 
+  grid-column: 1 / -1; 
+  height: calc(100% - 380px);
+  min-height: 200px;
+  margin-bottom: 16px;
+}
+
+/* Make content areas scrollable individually */
+.analysis-page .preview-table { max-height: 150px; overflow: auto; }
+.analysis-page .columns-list { max-height: 120px; overflow: auto; }
+.analysis-page .overview-stats { margin-bottom: 8px; }
+
+/* Topbar responsiveness */
+.analysis-topbar { 
+  display: grid; 
+  grid-template-columns: 180px 1fr 280px; 
+  align-items: center; 
+  gap: 20px; 
+  padding: 16px 20px;
+}
+
+.header-left {
+  justify-self: start;
+}
+
+.header-center {
+  justify-self: center;
+  text-align: center;
+}
+
+.header-right {
+  justify-self: end;
+  display: flex;
+  gap: 12px;
+}
+
+.analysis-topbar .analysis-title { 
+  white-space: nowrap; 
+  font-size: 22px;
+  margin: 0;
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .analysis-topbar .analysis-title { position: static; transform: none; max-width: 100%; text-align: center; margin: 4px 0; }
+  .pill-action { min-width: 100px; padding: 8px 12px; font-size: 13px; }
+}
+
+@media (max-width: 900px) {
+  .analysis-page { grid-template-columns: 1fr !important; }
+  .analysis-page .analysis-grid { grid-template-columns: 1fr; }
+  .analysis-main { height: calc(100vh - 320px); }
+}
+
 /* Analysis page */
 .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .card { background: linear-gradient(180deg, #0d1422, #0b1220); border: 1px solid #253044; border-radius: 12px; padding: 14px; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02); }
@@ -462,6 +571,50 @@ body {
 
 /* Uniform toolbar links (remove underline) */
 .toolbar-actions a.pill-action { text-decoration: none; display: inline-flex; }
+
+/* Clean, uniform action buttons for analysis page */
+.analysis-topbar .toolbar-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.analysis-topbar .pill-action {
+  padding: 10px 16px;
+  height: 40px;
+  width: 120px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(115, 179, 255, 0.4);
+  background: rgba(115, 179, 255, 0.1);
+  color: #eaf2ff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.analysis-topbar .pill-action:hover {
+  border-color: rgba(115, 179, 255, 0.7);
+  background: rgba(115, 179, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(115, 179, 255, 0.3);
+}
+
+.analysis-topbar .pill-action:active {
+  transform: translateY(0);
+}
+
+.analysis-topbar .pill-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
 .results-sidebar { position: relative; }
 .sidebar-placeholder { background: linear-gradient(180deg, #0d1422, #0b1220); border: 1px solid #253044; border-radius: 12px; padding: 14px; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02); }
 .status-log { 
