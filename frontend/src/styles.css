@@ -421,6 +421,8 @@ body {
 .results-topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; }
 .results-body { display: grid; grid-template-columns: 1fr min(420px, 30vw); gap: 16px; padding: 56px 16px 16px 16px; align-items: center; height: calc(100vh - 56px); }
 .results-map { position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(115,179,255,0.06); height: 100%; }
+.results-hint { position: absolute; left: 16px; bottom: 16px; padding: 8px 12px; border-radius: 999px; background: rgba(13,20,34,0.8); border: 1px solid rgba(115,179,255,0.35); color: #a9c7ff; font-size: 12px; display: flex; align-items: center; gap: 8px; pointer-events: none; backdrop-filter: blur(6px); }
+.results-hint::before { content: 'ⓘ'; font-size: 12px; color: rgba(115,179,255,0.9); }
 .results-sidebar { position: relative; }
 .sidebar-placeholder { background: linear-gradient(180deg, #0d1422, #0b1220); border: 1px solid #253044; border-radius: 12px; padding: 14px; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02); }
 .status-log { 

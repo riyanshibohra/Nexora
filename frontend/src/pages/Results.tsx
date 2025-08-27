@@ -134,7 +134,10 @@ export default function Results() {
             ) : datasets.length === 0 ? (
               <div className="empty">No datasets yet. Run a search on the landing page.</div>
             ) : (
-              <ResultsMap datasets={datasets} onSelect={setSelected} hoverId={hoverId} colorsById={colorsById} />
+              <>
+                <ResultsMap datasets={datasets} onSelect={setSelected} hoverId={hoverId} colorsById={colorsById} />
+                <div className="results-hint">Tip: hover or click a circle to view details</div>
+              </>
             )}
           </div>
 
