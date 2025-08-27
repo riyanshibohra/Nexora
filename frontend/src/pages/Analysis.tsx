@@ -99,7 +99,7 @@ export default function Analysis() {
         url.searchParams.set('source_url', dataset.source_url)
         const fname = active.file_path.split('/').slice(-1)[0]
         url.searchParams.set('file_name', fname)
-        url.searchParams.set('limit', '50')
+        url.searchParams.set('limit', '10')
         const res = await fetch(url.toString())
         const data = await res.json()
         setPreview({ headers: data.headers || [], rows: data.rows || [] })
@@ -180,11 +180,34 @@ export default function Analysis() {
               <section className="card">
                 <div className="summary-sub">Overview</div>
                 <div className="overview-stats">
-                  <div className="chip">Rows: {active?.num_rows ?? '—'}</div>
-                  <div className="chip">Columns: {active?.num_columns ?? '—'}</div>
-                  <div className="chip">Size: {formatBytes(active?.file_size)}</div>
-                  <div className="chip">Missing rows: {active?.num_rows_with_missing ?? '—'}</div>
-                  <div className="chip">Missing columns: {active?.num_columns_with_missing ?? '—'}</div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">{active?.num_rows?.toLocaleString() ?? '—'}</div>
+                    <div className="overview-stat-label">Total Rows</div>
+                  </div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">{active?.num_columns ?? '—'}</div>
+                    <div className="overview-stat-label">Total Columns</div>
+                  </div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">{formatBytes(active?.file_size)}</div>
+                    <div className="overview-stat-label">File Size</div>
+                  </div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">{active?.num_rows_with_missing ?? '0'}</div>
+                    <div className="overview-stat-label">Missing Rows</div>
+                  </div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">{active?.num_columns_with_missing ?? '0'}</div>
+                    <div className="overview-stat-label">Missing Columns</div>
+                  </div>
+                  <div className="overview-stat-item">
+                    <div className="overview-stat-value">
+                      {active?.num_rows && active?.num_rows_with_missing 
+                        ? Math.round(((active.num_rows - active.num_rows_with_missing) / active.num_rows) * 100)
+                        : '100'}%
+                    </div>
+                    <div className="overview-stat-label">Data Quality</div>
+                  </div>
                 </div>
               </section>
 
