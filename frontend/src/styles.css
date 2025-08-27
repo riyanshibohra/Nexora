@@ -467,23 +467,29 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.analysis-page .card:nth-child(1),
+.analysis-page .card:nth-child(1) {
+  height: 180px;
+  margin-bottom: 8px;
+}
 .analysis-page .card:nth-child(2) {
   height: 180px;
   margin-bottom: 8px;
 }
 
-.analysis-page .card:nth-child(3),
+.analysis-page .card:nth-child(3) {
+  height: 300px;
+  margin-bottom: 8px;
+}
 .analysis-page .card:nth-child(4) {
-  height: 170px;
+  height: 300px;
   margin-bottom: 8px;
 }
 
 .analysis-page .card:last-child { 
   grid-column: 1 / -1; 
   height: calc(100% - 370px);
-  min-height: 200px;
-  margin-bottom: 16px;
+  min-height: 80px;
+  margin-bottom: 8px;
 }
 
 /* Make content areas scrollable individually */
@@ -492,7 +498,7 @@ body {
   overflow: auto !important; 
   border-radius: 8px !important;
   border: 1px solid rgba(115, 179, 255, 0.2) !important;
-  margin-top: 16px !important;
+  margin-top: 9px !important;
 }
 
 /* Target the div wrapper around the table */
@@ -504,8 +510,8 @@ body {
 
 .analysis-page .preview-table + div::-webkit-scrollbar,
 .analysis-page .preview-table div[style*="overflow: auto"]::-webkit-scrollbar {
-  width: 3px !important;
-  height: 3px !important;
+  width: 4px !important;
+  height: 4px !important;
   background: transparent !important;
 }
 
@@ -520,8 +526,8 @@ body {
 }
 
 .analysis-page .preview-table::-webkit-scrollbar {
-  width: 3px !important;
-  height: 3px !important;
+  width: 2px !important;
+  height: 2px !important;
   background: transparent !important;
 }
 
@@ -531,13 +537,13 @@ body {
 }
 
 .analysis-page .preview-table::-webkit-scrollbar-thumb {
-  background: rgba(115, 179, 255, 0.1) !important;
-  border-radius: 1px !important;
+  background: rgba(115, 179, 255, 0.15) !important;
+  border-radius: 2px !important;
   border: none !important;
 }
 
 .analysis-page .preview-table::-webkit-scrollbar-thumb:hover {
-  background: rgba(115, 179, 255, 0.2) !important;
+  background: rgba(115, 179, 255, 0.25) !important;
 }
 
 .analysis-page .preview-table::-webkit-scrollbar-corner {
@@ -545,6 +551,268 @@ body {
 }
 .analysis-page .columns-list { max-height: 120px; overflow: auto; }
 .analysis-page .overview-stats { margin-bottom: 8px; }
+
+/* Quick Plots Styling */
+.quick-plots-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.plot-content {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(115, 179, 255, 0.15);
+  flex: 1;
+}
+
+.plot-content h4 {
+  color: #eaf2ff;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.plot-content h5 {
+  color: #a9c7ff;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Plot Navigation */
+.plot-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(115, 179, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(115, 179, 255, 0.2);
+}
+
+.nav-button {
+  background: rgba(115, 179, 255, 0.1);
+  border: 1px solid rgba(115, 179, 255, 0.3);
+  color: #eaf2ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover:not(:disabled) {
+  background: rgba(115, 179, 255, 0.2);
+  border-color: rgba(115, 179, 255, 0.5);
+}
+
+.nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.plot-indicator {
+  color: #a9c7ff;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Missing Data Heatmap */
+.heatmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.heatmap-label {
+  min-width: 80px;
+  color: #a9c7ff;
+  font-weight: 500;
+}
+
+.heatmap-bars {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.heatmap-cell.missing {
+  background: #ff6b6b;
+}
+
+.heatmap-cell.present {
+  background: rgba(115, 179, 255, 0.3);
+}
+
+.heatmap-percentage {
+  min-width: 40px;
+  color: #d4e3ff;
+  font-size: 10px;
+  text-align: right;
+}
+
+/* Pie Chart */
+.pie-chart-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #d4e3ff;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Quality Gauge */
+.quality-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+}
+
+.quality-gauge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quality-score {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.quality-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.quality-level {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.quality-description {
+  font-size: 11px;
+  color: #a9c7ff;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Column Analysis */
+.analysis-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analysis-section {
+  background: rgba(115, 179, 255, 0.05);
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid rgba(115, 179, 255, 0.1);
+}
+
+.column-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.column-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  transition: all 0.2s ease;
+}
+
+.column-item.numeric {
+  background: rgba(125, 211, 77, 0.1);
+  border: 1px solid rgba(125, 211, 77, 0.2);
+}
+
+.column-item.categorical {
+  background: rgba(115, 179, 255, 0.1);
+  border: 1px solid rgba(115, 179, 255, 0.2);
+}
+
+.column-name {
+  color: #eaf2ff;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.column-type {
+  color: #a9c7ff;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.more-indicator {
+  text-align: center;
+  color: #a9c7ff;
+  font-size: 10px;
+  font-style: italic;
+  padding: 4px;
+}
 
 /* Topbar responsiveness */
 .analysis-topbar { 
@@ -657,35 +925,45 @@ body {
   color: #d4e3ff; 
   background: rgba(255, 255, 255, 0.02);
   border-radius: 8px;
+  border: 1px solid rgba(115, 179, 255, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .preview-table thead th { 
   position: sticky !important; 
   top: 0 !important; 
-  background: linear-gradient(135deg, rgba(115, 179, 255, 0.15), rgba(115, 179, 255, 0.08)) !important;
-  border-bottom: 2px solid rgba(115, 179, 255, 0.3);
+  background: linear-gradient(135deg, rgba(115, 179, 255, 0.2), rgba(115, 179, 255, 0.1)) !important;
+  border-bottom: 2px solid rgba(115, 179, 255, 0.4);
   text-align: left; 
-  padding: 12px 16px; 
+  padding: 14px 16px; 
   font-weight: 700;
-  color: #eaf2ff;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 11px;
+  letter-spacing: 0.8px;
+  font-size: 12px;
   z-index: 999 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
 }
 
 .preview-table tbody td { 
-  padding: 10px 16px; 
-  border-bottom: 1px solid rgba(37, 48, 68, 0.3); 
+  padding: 12px 16px; 
+  border-bottom: 1px solid rgba(37, 48, 68, 0.4); 
   white-space: nowrap; 
   font-size: 13px;
+  color: #eaf2ff;
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .preview-table tbody tr:hover { 
-  background: rgba(115, 179, 255, 0.08);
-  transform: translateX(2px);
+  background: rgba(115, 179, 255, 0.12);
+  transform: translateX(1px);
   transition: all 0.2s ease;
+}
+
+.preview-table tbody tr:hover td {
+  background: rgba(115, 179, 255, 0.08);
+  border-bottom-color: rgba(115, 179, 255, 0.3);
 }
 
 @media (max-width: 920px) {

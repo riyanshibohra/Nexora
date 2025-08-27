@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react'
+import { QuickPlots } from '../components/QuickPlots'
 
 type FileOutput = {
   id?: string
@@ -212,28 +213,6 @@ export default function Analysis() {
               </section>
 
               <section className="card">
-                <div className="summary-sub">Data Preview</div>
-                {previewLoading ? (
-                  <div className="preview-placeholder">Loading preview…</div>
-                ) : preview && preview.headers.length > 0 ? (
-                  <div style={{ overflow: 'auto' }}>
-                    <table className="preview-table">
-                      <thead>
-                        <tr>{preview.headers.map(h => <th key={h}>{h}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {preview.rows.map((r, idx) => (
-                          <tr key={idx}>{preview.headers.map(h => <td key={h}>{String(r[h] ?? '')}</td>)}</tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="preview-placeholder">No preview available</div>
-                )}
-              </section>
-
-              <section className="card">
                 <div className="summary-sub columns-types-header">
                   <span>Columns & Types</span>
                   <div className="sort-controls">
@@ -262,7 +241,42 @@ export default function Analysis() {
 
               <section className="card">
                 <div className="summary-sub">Quick Plots</div>
-                <div className="preview-placeholder">Plots coming soon</div>
+                {active ? (
+                  <QuickPlots
+                    columnDtypes={active.column_dtypes || {}}
+                    numRows={active.num_rows || 0}
+                    numColumns={active.num_columns || 0}
+                    missingRows={active.num_rows_with_missing || 0}
+                    missingColumns={active.num_columns_with_missing || 0}
+                    dataQuality={active.num_rows && active.num_rows_with_missing 
+                      ? Math.round(((active.num_rows - active.num_rows_with_missing) / active.num_rows) * 100)
+                      : 100}
+                  />
+                ) : (
+                  <div className="preview-placeholder">Select a file to view plots</div>
+                )}
+              </section>
+
+              <section className="card">
+                <div className="summary-sub">Data Preview</div>
+                {previewLoading ? (
+                  <div className="preview-placeholder">Loading preview…</div>
+                ) : preview && preview.headers.length > 0 ? (
+                  <div style={{ overflow: 'auto' }}>
+                    <table className="preview-table">
+                      <thead>
+                        <tr>{preview.headers.map(h => <th key={h}>{h}</th>)}</tr>
+                      </thead>
+                      <tbody>
+                        {preview.rows.map((r, idx) => (
+                          <tr key={idx}>{preview.headers.map(h => <td key={h}>{String(r[h] ?? '')}</td>)}</tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="preview-placeholder">No preview available</div>
+                )}
               </section>
 
               <section className="card" style={{ gridColumn: '1 / -1' }}>
