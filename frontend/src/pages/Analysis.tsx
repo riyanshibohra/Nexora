@@ -119,28 +119,42 @@ export default function Analysis() {
   return (
     <div className="universe" style={{ minHeight: '100vh' }}>
       <div className="results-layout" style={{ gridTemplateColumns: '280px 1fr' }}>
-        <header className="results-topbar" style={{ gridColumn: '1 / -1' }}>
+        <header className="results-topbar analysis-topbar" style={{ gridColumn: '1 / -1', position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <a href="/results" className="backlink">← Back to Results</a>
-            <h2 className="brand-title" style={{ fontSize: '24px', margin: 0 }}>{title} – Analysis</h2>
           </div>
+          <h2 className="analysis-title">{title} – Analysis</h2>
           <div className="toolbar-actions">
-            <button className="pill-action" onClick={() => {
+            <button className="pill-action" onClick={async () => {
               if (!dataset || !active) return
               const fname = active.file_path.split('/').slice(-1)[0]
-              const u = new URL(`${API_BASE}/download-file`)
-              u.searchParams.set('source_url', dataset.source_url)
-              u.searchParams.set('file_name', fname)
-              window.open(u.toString(), '_blank')
+              try {
+                const durl = new URL(`${API_BASE}/download-file`)
+                durl.searchParams.set('source_url', dataset.source_url)
+                durl.searchParams.set('file_name', fname)
+                const res = await fetch(durl.toString())
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                const blob = await res.blob()
+                const a = document.createElement('a')
+                const downloadUrl = window.URL.createObjectURL(blob)
+                a.href = downloadUrl
+                a.download = fname
+                document.body.appendChild(a)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(downloadUrl)
+              } catch (e) {
+                console.error('Download failed', e)
+              }
             }}>Download file</button>
             <button className="pill-action" disabled>Generate report</button>
             <a className="pill-action" href={dataset?.source_url} target="_blank" rel="noreferrer">View on Source</a>
           </div>
         </header>
 
-        <aside className="sidebar-placeholder" style={{ height: 'calc(100vh - 56px)', overflow: 'auto' }}>
+        <aside className="sidebar-placeholder" style={{ height: 'calc(100vh - 56px)', overflowY: 'auto', overflowX: 'hidden' }}>
           <div className="summary-sub" style={{ marginBottom: 8 }}>Files</div>
-          <input className="input" placeholder="Search files…" value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', marginBottom: 10 }} />
+          <input className="file-search" placeholder="Search files…" value={search} onChange={e => setSearch(e.target.value)} />
           <div className="dataset-list">
             {files.filter(f => f.file_path.toLowerCase().includes(search.toLowerCase())).map((f, i) => (
               <button key={i} className="dataset-item" data-active={i === activeIdx} onClick={() => setActiveIdx(i)}>

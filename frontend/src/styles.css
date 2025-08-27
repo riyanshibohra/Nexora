@@ -447,10 +447,21 @@ body {
 /* Header toolbar + backlink */
 .backlink { color: #a9c7ff; text-decoration: none; opacity: 0.8; }
 .backlink:hover { opacity: 1; text-decoration: underline; }
-.toolbar-actions { display: flex; gap: 8px; align-items: center; }
-.pill-action { padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(115,179,255,0.35); background: rgba(115,179,255,0.06); color: #eaf2ff; cursor: pointer; }
+.toolbar-actions { display: grid; grid-auto-flow: column; gap: 10px; align-items: center; }
+.pill-action { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; min-height: 40px; min-width: 160px; border-radius: 999px; border: 1px solid rgba(115,179,255,0.35); background: rgba(115,179,255,0.06); color: #eaf2ff; cursor: pointer; font-size: 14px; font-weight: 600; line-height: 1; white-space: nowrap; }
 .pill-action[data-active="true"], .pill-action:hover { background: rgba(115,179,255,0.14); }
 .pill-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Sidebar search alignment */
+.file-search { width: 100%; box-sizing: border-box; margin: 0 0 10px 0; padding: 12px 14px; height: 40px; border-radius: 10px; border: 1px solid #253044; background: linear-gradient(180deg, #0d1422, #0b1220); color: var(--ink-strong); outline: none; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02); }
+.file-search::placeholder { color: rgba(169, 199, 255, 0.5); }
+
+/* Centered, subtle title effect without halo */
+.analysis-topbar { position: relative; }
+.analysis-title { position: absolute; left: 50%; transform: translateX(-50%); margin: 0; font-size: 24px; letter-spacing: 0.4px; color: #eaf2ff; text-shadow: 0 2px 14px rgba(115,179,255,0.2), 0 0 1px rgba(115,179,255,0.35); font-weight: 700; }
+
+/* Uniform toolbar links (remove underline) */
+.toolbar-actions a.pill-action { text-decoration: none; display: inline-flex; }
 .results-sidebar { position: relative; }
 .sidebar-placeholder { background: linear-gradient(180deg, #0d1422, #0b1220); border: 1px solid #253044; border-radius: 12px; padding: 14px; box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02); }
 .status-log { 
@@ -807,25 +818,14 @@ body {
 
 /* Dataset list in Summary View */
 .dataset-list { display: grid; gap: 8px; }
-.dataset-item { 
-  display: flex; 
-  align-items: center; 
-  gap: 10px; 
-  padding: 10px 12px; 
-  border-radius: 10px; 
-  border: 1px solid rgba(37,48,68,0.6);
-  background: rgba(255,255,255,0.03);
-  color: #eaf2ff;
-  cursor: pointer;
-  text-align: left;
-}
+.dataset-item { display: grid; grid-template-columns: 10px 1fr; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(37,48,68,0.6); background: rgba(255,255,255,0.03); color: #eaf2ff; cursor: pointer; text-align: left; }
 .dataset-item:hover, .dataset-item[data-active="true"] { 
   border-color: rgba(115,179,255,0.6); 
   background: rgba(115,179,255,0.08);
   box-shadow: 0 4px 14px rgba(115,179,255,0.15) inset; 
 }
 .color-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px rgba(115,179,255,0.4); }
-.dataset-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dataset-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
 /* Hover card in scene */
 .hovercard { background: linear-gradient(180deg, rgba(13,20,34,0.9), rgba(11,18,32,0.9)); border: 1px solid #253044; border-radius: 10px; padding: 10px 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); backdrop-filter: blur(6px); min-width: 220px; }
