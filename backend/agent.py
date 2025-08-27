@@ -185,6 +185,14 @@ def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
             unzip=True
         )
 
+        # Try to fetch rich dataset metadata from Kaggle
+        kaggle_description = None
+        try:
+            view = api.dataset_view(slug)
+            kaggle_description = getattr(view, 'subtitle', None) or getattr(view, 'description', None)
+        except Exception:
+            kaggle_description = None
+
         files: List[FileRecord] = []
         for p in dest_dir.rglob('*'):
             if p.is_file():
@@ -209,6 +217,7 @@ def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
             meta={
                 'owner': owner,
                 'num_files': len(files),
+                'description': kaggle_description,
             }
         ))
 
@@ -340,7 +349,7 @@ def get_metadata(state: AgentState):
             "files": file_ctx_list,
         }
 
-        llm_for_meta = ChatOpenAI(model="gpt-4o", temperature=0.5)
+        llm_for_meta = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
 
         prompt = (
             "You are analyzing ONE specific Kaggle dataset link.\n"
@@ -357,20 +366,23 @@ def get_metadata(state: AgentState):
             f"File summaries JSON: {json.dumps(file_ctx_list) }"
         )
 
-        description = None
+        # Prefer Kaggle-provided description when present
+        description = (bundle.meta or {}).get('description')
         possibility = None
         try:
-            resp = llm_for_meta.invoke(prompt)
-            content = getattr(resp, "content", "")
-            start = content.find("{")
-            end = content.rfind("}")
-            if start != -1 and end != -1 and end > start:
-                js = content[start: end + 1]
-                data = json.loads(js)
-                description = (data.get("description") or "").strip() or None
-                poss = (data.get("possibilities") or "").strip().lower()
-                allowed = {"classification", "regression", "clustering", "time_series", "text_generation", "image_generation", "other"}
-                possibility = poss if poss in allowed else None
+            # Only call LLM when Kaggle doesn't provide description
+            if not description:
+                resp = llm_for_meta.invoke(prompt)
+                content = getattr(resp, "content", "")
+                start = content.find("{")
+                end = content.rfind("}")
+                if start != -1 and end != -1 and end > start:
+                    js = content[start: end + 1]
+                    data = json.loads(js)
+                    description = (data.get("description") or "").strip() or None
+                    poss = (data.get("possibilities") or "").strip().lower()
+                    allowed = {"classification", "regression", "clustering", "time_series", "text_generation", "image_generation", "other"}
+                    possibility = poss if poss in allowed else None
         except Exception:
             pass
 

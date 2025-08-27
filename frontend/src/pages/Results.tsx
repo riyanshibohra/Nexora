@@ -24,6 +24,7 @@ export default function Results() {
   const [selected, setSelected] = useState<Dataset | null>(null)
   const [insightsOpen, setInsightsOpen] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [hoverId, setHoverId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -51,6 +52,34 @@ export default function Results() {
   }, [runPayload])
 
   const runStatus = useMemo(() => runPayload?.state?.status ?? [], [runPayload])
+
+  // Generate stable, unique colors per dataset (first 10 guaranteed unique)
+  const colorsById = useMemo(() => {
+    const palette = [
+      '#4a9eff', // blue
+      '#00d4aa', // teal
+      '#7dd34d', // green
+      '#ffd166', // yellow
+      '#ff9b42', // orange
+      '#ff6b6b', // red
+      '#ff6bd6', // pink
+      '#a08bff', // purple
+      '#6ae0ff', // cyan
+      '#b9ff5e', // lime
+    ]
+    const map: Record<string, string> = {}
+    datasets.forEach((d, i) => {
+      const color = palette[i % palette.length]
+      map[d.id] = color
+    })
+    return map
+  }, [datasets])
+
+  function titleFor(ds: Dataset): string {
+    const base = ds.display_name || ds.source_id || new URL(ds.source_url).pathname.split('/').filter(Boolean).slice(-1)[0] || 'Dataset'
+    const s = base.replace(/[-_]+/g, ' ').trim()
+    return s.replace(/\b\w/g, c => c.toUpperCase())
+  }
 
   async function handleNewSearch() {
     setResetting(true)
@@ -84,9 +113,7 @@ export default function Results() {
       <header className="cine-topbar">
         <h2 className="brand-title" style={{ fontSize: '28px', margin: 0 }}>Nexora</h2>
         <div className="cine-actions">
-          {runStatus && runStatus.length > 0 && (
-            <button className="button-secondary" onClick={() => setInsightsOpen(true)}>✨ Generate Insights</button>
-          )}
+          {/* Insights button removed per new summary design */}
           <button 
             className="button-primary" 
             onClick={handleNewSearch}
@@ -107,7 +134,7 @@ export default function Results() {
             ) : datasets.length === 0 ? (
               <div className="empty">No datasets yet. Run a search on the landing page.</div>
             ) : (
-              <ResultsMap datasets={datasets} onSelect={setSelected} />
+              <ResultsMap datasets={datasets} onSelect={setSelected} hoverId={hoverId} colorsById={colorsById} />
             )}
           </div>
 
@@ -115,18 +142,23 @@ export default function Results() {
             <div className="summary-panel">
               <div className="summary-title">Summary View</div>
               <div className="summary-section">
-                <div className="summary-sub">AI-Generated Quick Insights</div>
-                <div className="summary-placeholder">Coming soon</div>
-                <div className="summary-actions">
-                  <button className="button-secondary" onClick={() => setInsightsOpen(true)}>✨ Generate Insights</button>
+                <div className="summary-sub">Datasets</div>
+                <div className="dataset-list">
+                  {datasets.slice(0, 10).map(ds => (
+                    <button
+                      key={ds.id}
+                      className="dataset-item"
+                      data-active={hoverId === ds.id}
+                      onMouseEnter={() => setHoverId(ds.id)}
+                      onMouseLeave={() => setHoverId(null)}
+                      onClick={() => setSelected(ds)}
+                    >
+                      <span className="color-dot" style={{ background: colorsById[ds.id] }} />
+                      <span className="dataset-name">{titleFor(ds)}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-              {runStatus && runStatus.length > 0 && (
-                <div className="summary-section">
-                  <div className="summary-sub">Run status</div>
-                  <pre className="status-log">{runStatus.join('\n')}</pre>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -137,5 +169,6 @@ export default function Results() {
     </div>
   )
 }
+
 
 

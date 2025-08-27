@@ -91,8 +91,8 @@ def upsert_dataset(
                 UPDATE datasets SET
                     source_id = COALESCE(?, source_id),
                     display_name = COALESCE(?, display_name),
-                    description = ?,
-                    possibilities = ?,
+                    description = COALESCE(?, description),
+                    possibilities = COALESCE(?, possibilities),
                     num_files = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE source_url = ?
@@ -190,10 +190,15 @@ def store_dataset_output(dataset: Dict, downloaded_meta: Optional[Dict] = None, 
     if not source_url:
         raise ValueError("dataset.source_url is required")
 
+    # Prefer authoritative description from downloaded metadata when present
+    desc_from_dl = None
+    if downloaded_meta:
+        desc_from_dl = (downloaded_meta.get("description") or None)
+
     dataset_id = upsert_dataset(
         source_url=source_url,
         num_files=int(dataset.get("num_files") or 0),
-        description=dataset.get("description"),
+        description=desc_from_dl if desc_from_dl is not None else dataset.get("description"),
         possibilities=dataset.get("possibilities"),
         source_id=(downloaded_meta or {}).get("source_id"),
         display_name=(downloaded_meta or {}).get("display_name"),

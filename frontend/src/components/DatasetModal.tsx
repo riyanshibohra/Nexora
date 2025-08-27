@@ -58,7 +58,7 @@ function getTaskType(possibilities: string | null): string {
 }
 
 function truncateDescription(desc: string | null, maxLines: number = 2): string {
-  if (!desc) return 'No description available for this dataset.'
+  if (!desc) return ''
   
   // Split into words and estimate line breaks
   const words = desc.split(' ')
@@ -72,6 +72,13 @@ function truncateDescription(desc: string | null, maxLines: number = 2): string 
   return words.slice(0, maxWords).join(' ') + '...'
 }
 
+function buildFallbackDescription(dataset: Dataset, taskType: string): string {
+  const title = titleFor(dataset)
+  const src = getSourceName(dataset.source_url)
+  const typePart = taskType && taskType !== 'Analysis' ? `${taskType} ` : ''
+  return `A ${typePart}dataset: ${title} (source: ${src}).`
+}
+
 export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | null, onClose: () => void }) {
   if (!dataset) return null
 
@@ -79,7 +86,9 @@ export default function DatasetModal({ dataset, onClose }: { dataset: Dataset | 
   const sourceName = getSourceName(dataset.source_url)
   const taskType = getTaskType(dataset.possibilities)
   const actualSize = formatFileSize(dataset.total_size_bytes)
-  const description = truncateDescription(dataset.description)
+  const description = (dataset.description && dataset.description.trim().length > 0)
+    ? dataset.description
+    : buildFallbackDescription(dataset, taskType)
 
   return (
     <div className="dataset-modal-backdrop" onClick={onClose}>

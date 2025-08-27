@@ -147,7 +147,7 @@ function createHaloTexture(): THREE.Texture {
   return tex
 }
 
-function CircleNode({ node, onClick, onHover, baseSize, weight }: { node: NodeSpec, onClick: (ds: Dataset) => void, onHover: (ds: Dataset | null) => void, baseSize: number, weight: number }) {
+function CircleNode({ node, onClick, onHover, baseSize, weight, highlighted, color }: { node: NodeSpec, onClick: (ds: Dataset) => void, onHover: (ds: Dataset | null) => void, baseSize: number, weight: number, highlighted: boolean, color: string }) {
   const haloTex = useMemo(() => createHaloTexture(), [])
   const grp = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
@@ -185,16 +185,16 @@ function CircleNode({ node, onClick, onHover, baseSize, weight }: { node: NodeSp
   return (
     <group ref={grp} position={node.position.toArray()} onClick={() => onClick(node.dataset)} onPointerOver={() => { setIsHover(true); onHover(node.dataset) }} onPointerOut={() => { setIsHover(false); onHover(null) }}>
       <sprite scale={[size * 1.6, size * 1.6, 1]}>
-        <spriteMaterial map={haloTex} color={new THREE.Color(colorForType(node.dataset.possibilities))} transparent depthWrite={false} blending={THREE.AdditiveBlending} opacity={isHover ? 0.65 : 0.38} />
+        <spriteMaterial map={haloTex} color={new THREE.Color(color)} transparent depthWrite={false} blending={THREE.AdditiveBlending} opacity={(isHover || highlighted) ? 0.7 : 0.38} />
       </sprite>
       <mesh ref={meshRef}>
         <circleGeometry args={[size * 1.3, 36]} />
-        <meshStandardMaterial color={new THREE.Color(colorForType(node.dataset.possibilities))} emissive={new THREE.Color('#4e81c1')} emissiveIntensity={isHover ? 0.35 : 0.22} roughness={0.88} metalness={0.04} />
+        <meshStandardMaterial color={new THREE.Color(color)} emissive={new THREE.Color('#4e81c1')} emissiveIntensity={(isHover || highlighted) ? 0.5 : 0.22} roughness={0.88} metalness={0.04} />
       </mesh>
-      {isHover && (
+      {(isHover || highlighted) && (
         <mesh>
           <ringGeometry args={[size * 1.45, size * 1.55, 64]} />
-          <meshBasicMaterial color="#cfe0ff" transparent opacity={0.35} />
+          <meshBasicMaterial color="#cfe0ff" transparent opacity={0.45} />
         </mesh>
       )}
 
@@ -202,7 +202,7 @@ function CircleNode({ node, onClick, onHover, baseSize, weight }: { node: NodeSp
   )
 }
 
-function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dataset) => void }) {
+function Scene({ datasets, onSelect, hoverId, colorsById }: { datasets: Dataset[], onSelect: (ds: Dataset) => void, hoverId?: string | null, colorsById?: Record<string, string> }) {
   const groupRef = useRef<THREE.Group>(null)
   const { viewport } = useThree()
   const layout = useMemo(() => generateNodesScatter(datasets, viewport.width, viewport.height), [datasets, viewport.width, viewport.height])
@@ -256,9 +256,13 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
             lineWidth={1.2}
           />
         ))}
-        {nodes.map((n, idx) => (
-          <CircleNode key={idx} node={n} onClick={onSelect} onHover={handleHover} baseSize={baseSize} weight={weights[idx] ?? 0.5} />
-        ))}
+        {nodes.map((n, idx) => {
+          const color = (colorsById && colorsById[n.dataset.id]) || colorForType(n.dataset.possibilities)
+          const highlighted = hoverId === n.dataset.id
+          return (
+            <CircleNode key={idx} node={n} onClick={onSelect} onHover={handleHover} baseSize={baseSize} weight={weights[idx] ?? 0.5} highlighted={!!highlighted} color={color} />
+          )
+        })}
       </group>
       <OrbitControls enableDamping dampingFactor={0.06} rotateSpeed={0.25} zoomSpeed={0.6} panSpeed={0.5} minDistance={14} maxDistance={90} enableRotate={false} />
       {hovered && hoveredNode && (
@@ -274,10 +278,10 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
   )
 }
 
-export default function ResultsMap({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dataset) => void }) {
+export default function ResultsMap({ datasets, onSelect, hoverId = null, colorsById = {} as Record<string, string> }: { datasets: Dataset[], onSelect: (ds: Dataset) => void, hoverId?: string | null, colorsById?: Record<string, string> }) {
   return (
     <Canvas className="canvas3d" camera={{ position: [0, 0, 40], fov: 55 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
-      <Scene datasets={datasets} onSelect={onSelect} />
+      <Scene datasets={datasets} onSelect={onSelect} hoverId={hoverId} colorsById={colorsById} />
     </Canvas>
   )
 }
