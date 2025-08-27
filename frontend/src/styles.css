@@ -777,11 +777,13 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
   min-width: 200px;
-  max-width: 320px;
+  /* Constrain width to avoid overflow near viewport edges */
+  max-width: min(280px, 80vw);
   position: relative;
   animation: tooltipFadeIn 0.2s ease-out;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .planet-tooltip::before {
@@ -801,9 +803,16 @@ body {
   margin-bottom: 6px;
   text-shadow: 0 0 8px rgba(115, 179, 255, 0.3);
   line-height: 1.4;
+  /* Ensure long titles wrap and are clamped to two lines */
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-word;
   hyphens: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tooltip-action {
@@ -814,6 +823,10 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Prevent overflow for the hint line */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tooltip-action::before {

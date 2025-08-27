@@ -262,7 +262,8 @@ function Scene({ datasets, onSelect }: { datasets: Dataset[], onSelect: (ds: Dat
       </group>
       <OrbitControls enableDamping dampingFactor={0.06} rotateSpeed={0.25} zoomSpeed={0.6} panSpeed={0.5} minDistance={14} maxDistance={90} enableRotate={false} />
       {hovered && hoveredNode && (
-        <Html position={[hoveredNode.position.x + 5, hoveredNode.position.y + 1.5, hoveredNode.position.z]} center>
+        // Flip tooltip to the left when node is on the right half of the scene
+        <Html position={[hoveredNode.position.x + (hoveredNode.position.x > 0 ? -5 : 5), hoveredNode.position.y + 1.5, hoveredNode.position.z]} center>
           <div className="planet-tooltip">
             <div className="tooltip-title">{titleFor(hovered)}</div>
             <div className="tooltip-action">Click to open full details</div>
