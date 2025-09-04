@@ -159,12 +159,33 @@ def file_preview(source_url: str, file_name: str, limit: int = 50) -> Dict[str, 
     headers: List[str] = []
     try:
         if path.lower().endswith('.csv'):
-            with open(path, 'r', encoding='utf-8', newline='') as f:
-                reader = csv.DictReader(f)
-                headers = list(reader.fieldnames or [])
-                for i, r in enumerate(reader):
-                    if i >= limit: break
-                    rows.append({k: (v if v is not None else '') for k, v in r.items()})
+            # Try multiple CSV parsing strategies for malformed files
+            try:
+                with open(path, 'r', encoding='utf-8', newline='') as f:
+                    reader = csv.DictReader(f)
+                    headers = list(reader.fieldnames or [])
+                    for i, r in enumerate(reader):
+                        if i >= limit: break
+                        rows.append({k: (v if v is not None else '') for k, v in r.items()})
+            except Exception:
+                try:
+                    # Fallback: use pandas with error handling
+                    import pandas as pd
+                    df = pd.read_csv(path, engine='python', on_bad_lines='skip', nrows=limit)
+                    headers = list(df.columns)
+                    for _, row in df.iterrows():
+                        rows.append({col: str(val) if pd.notna(val) else '' for col, val in row.items()})
+                except Exception:
+                    # Final fallback: manual parsing
+                    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                        lines = f.readlines()[:limit+1]  # +1 for header
+                        if lines:
+                            headers = [col.strip().strip('"') for col in lines[0].strip().split(',')]
+                            for line in lines[1:]:
+                                values = [val.strip().strip('"') for val in line.strip().split(',')]
+                                if len(values) >= len(headers):
+                                    row_dict = {headers[i]: values[i] if i < len(values) else '' for i in range(len(headers))}
+                                    rows.append(row_dict)
         elif path.lower().endswith('.json'):
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)

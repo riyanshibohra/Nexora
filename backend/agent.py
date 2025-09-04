@@ -202,20 +202,32 @@ def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
         dest_dir = base_dir / sanitize_slug(slug)
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        api.dataset_download_files(
-            slug,
-            path=str(dest_dir),
-            force=False,
-            quiet=True,
-            unzip=True
-        )
+        try:
+            # Attempt to download the dataset directly
+            # The download will fail if the dataset doesn't exist or isn't accessible
+            api.dataset_download_files(
+                slug,
+                path=str(dest_dir),
+                force=False,
+                quiet=True,
+                unzip=True
+            )
+        except Exception as e:
+            print(f"Failed to download dataset {slug}: {str(e)}")
+            # Continue with other datasets instead of failing completely
+            continue
 
         # Try to fetch rich dataset metadata from Kaggle
         kaggle_description = None
         try:
-            view = api.dataset_view(slug)
-            kaggle_description = getattr(view, 'subtitle', None) or getattr(view, 'description', None)
-        except Exception:
+            # Get metadata file from the downloaded dataset
+            metadata_file = dest_dir / "dataset-metadata.json"
+            if metadata_file.exists():
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+                kaggle_description = metadata.get('subtitle') or metadata.get('description')
+        except Exception as e:
+            print(f"Could not fetch metadata for dataset {slug}: {str(e)}")
             kaggle_description = None
 
         files: List[FileRecord] = []
@@ -283,7 +295,38 @@ def get_metadata(state: AgentState):
         
         try:
             if file_ext == ".csv":
-                df = pd.read_csv(file_path)
+                # Try multiple CSV parsing strategies for malformed files
+                try:
+                    # First attempt: standard parsing
+                    df = pd.read_csv(file_path)
+                except pd.errors.ParserError:
+                    try:
+                        # Second attempt: more lenient parsing with Python engine
+                        df = pd.read_csv(file_path, engine='python', on_bad_lines='skip')
+                    except Exception:
+                        try:
+                            # Third attempt: handle quoting issues
+                            df = pd.read_csv(file_path, quoting=1, escapechar='\\', on_bad_lines='skip')
+                        except Exception:
+                            # Final attempt: read as text and clean manually
+                            import csv
+                            rows = []
+                            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                reader = csv.reader(f, quoting=csv.QUOTE_NONE, escapechar='\\')
+                                for i, row in enumerate(reader):
+                                    if i == 0:  # Header
+                                        headers = row
+                                    else:
+                                        if len(row) == len(headers):
+                                            rows.append(row)
+                                        elif len(row) > len(headers):
+                                            # Truncate extra fields
+                                            rows.append(row[:len(headers)])
+                                        # Skip rows with too few fields
+                            if rows:
+                                df = pd.DataFrame(rows, columns=headers)
+                            else:
+                                df = None
             elif file_ext in [".xlsx", ".xls"]:
                 df = pd.read_excel(file_path)
             elif file_ext == ".json":
