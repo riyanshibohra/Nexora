@@ -317,8 +317,12 @@ def get_dataset_with_files_by_url(source_url: str, db_path: str = DEFAULT_DB_PAT
     if not ds:
         return None
     files = get_files_for_dataset(ds["id"], db_path=db_path)
+    
+    # Filter to only include files with valid metadata
+    valid_files = [f for f in files if f.get("num_rows") is not None and f.get("num_columns") is not None]
+    
     ds_copy = dict(ds)
-    ds_copy["files"] = files
+    ds_copy["files"] = valid_files
     return ds_copy
 
 
@@ -331,6 +335,12 @@ def list_datasets(db_path: str = DEFAULT_DB_PATH) -> List[Dict]:
                    COALESCE(SUM(f.file_size), 0) as total_size_bytes
             FROM datasets d
             LEFT JOIN files f ON d.id = f.dataset_id
+            WHERE EXISTS (
+                SELECT 1 FROM files f2 
+                WHERE f2.dataset_id = d.id 
+                AND f2.num_rows IS NOT NULL 
+                AND f2.num_columns IS NOT NULL
+            )
             GROUP BY d.id, d.source_url, d.source_id, d.display_name, d.description, d.possibilities, d.num_files, d.created_at, d.updated_at
             ORDER BY d.id DESC;
             """

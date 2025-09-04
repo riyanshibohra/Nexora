@@ -76,19 +76,32 @@ export default function Analysis() {
   }, [sourceUrl])
 
   const title = useMemo(() => prettyTitle(dataset?.display_name, dataset?.source_url), [dataset])
-  const files = dataset?.files || []
+  
+  // Filter to only show columnar files (CSV, XLSX, XLS, JSON)
+  const supportedExtensions = ['.csv', '.xlsx', '.xls', '.json']
+  const files = useMemo(() => {
+    if (!dataset?.files) return []
+    return dataset.files.filter(file => {
+      const fileName = file.file_path.toLowerCase()
+      return supportedExtensions.some(ext => fileName.endsWith(ext))
+    })
+  }, [dataset?.files])
+  
   const active = files[activeIdx]
 
   // When dataset loads, if ?file= is set select that file
   useEffect(() => {
-    if (!dataset) return
+    if (!dataset || files.length === 0) return
     const p = new URLSearchParams(window.location.search)
     const fileParam = p.get('file')
     if (fileParam) {
       const idx = files.findIndex(f => f.file_path.endsWith(fileParam))
       if (idx >= 0) setActiveIdx(idx)
+    } else {
+      // Reset to first file if no specific file is requested
+      setActiveIdx(0)
     }
-  }, [dataset])
+  }, [dataset, files])
 
   // Load preview whenever active file changes
   useEffect(() => {
@@ -155,7 +168,11 @@ export default function Analysis() {
         </header>
 
         <aside className="sidebar-placeholder" style={{ height: 'calc(100vh - 56px)', overflowY: 'auto', overflowX: 'hidden' }}>
-          <div className="summary-sub" style={{ marginBottom: 8 }}>Files</div>
+          <div className="summary-sub" style={{ marginBottom: 8 }}>
+            Files {dataset?.files && dataset.files.length > files.length 
+              ? `(${files.length} of ${dataset.files.length} supported)` 
+              : `(${files.length})`}
+          </div>
           <input className="file-search" placeholder="Search files…" value={search} onChange={e => setSearch(e.target.value)} />
           <div className="dataset-list">
             {files.filter(f => f.file_path.toLowerCase().includes(search.toLowerCase())).map((f, i) => (
@@ -175,7 +192,12 @@ export default function Analysis() {
           ) : !dataset ? (
             <div className="empty">Dataset not found.</div>
           ) : files.length === 0 ? (
-            <div className="empty">No files recorded for this dataset.</div>
+            <div className="empty">
+              {dataset?.files && dataset.files.length > 0 
+                ? "No supported columnar files (CSV, XLSX, XLS, JSON) found in this dataset."
+                : "No files recorded for this dataset."
+              }
+            </div>
           ) : (
             <div className="analysis-grid">
               <section className="card">

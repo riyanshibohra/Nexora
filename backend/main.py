@@ -149,6 +149,12 @@ def file_preview(source_url: str, file_name: str, limit: int = 50) -> Dict[str, 
     if not os.path.isfile(path):
         raise HTTPException(status_code=404, detail="File missing on server")
 
+    # Check if file type is supported for preview
+    SUPPORTED_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json'}
+    file_ext = os.path.splitext(path)[1].lower()
+    if file_ext not in SUPPORTED_EXTENSIONS:
+        return {"headers": [], "rows": [], "error": "File type not supported for preview"}
+
     rows: List[Dict[str, Any]] = []
     headers: List[str] = []
     try:
@@ -168,11 +174,22 @@ def file_preview(source_url: str, file_name: str, limit: int = 50) -> Dict[str, 
                 for item in sample:
                     if isinstance(item, dict):
                         rows.append({k: item.get(k, '') for k in headers})
+        elif path.lower().endswith(('.xlsx', '.xls')):
+            # For Excel files, use pandas to read and convert to preview format
+            try:
+                import pandas as pd
+                df = pd.read_excel(path, nrows=limit)
+                headers = list(df.columns)
+                rows = []
+                for _, row in df.iterrows():
+                    rows.append({col: str(val) if pd.notna(val) else '' for col, val in row.items()})
+            except Exception as e:
+                return {"headers": [], "rows": [], "error": f"Error reading Excel file: {str(e)}"}
         else:
             # Unsupported preview
-            return {"headers": [], "rows": []}
-    except Exception:
-        return {"headers": [], "rows": []}
+            return {"headers": [], "rows": [], "error": "File type not supported for preview"}
+    except Exception as e:
+        return {"headers": [], "rows": [], "error": f"Error reading file: {str(e)}"}
 
     return {"headers": headers, "rows": rows}
 

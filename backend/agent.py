@@ -83,11 +83,14 @@ class AgentState(TypedDict):
 
 
 def tavily_search_tool(state: AgentState):
-    """Search Kaggle only and return up to 10 most relevant, deduped dataset links."""
+    """Search Kaggle only and return up to 15 most relevant, deduped dataset links."""
     query = state["query"]
 
+    # Multiple search variations to find more relevant tabular datasets
     site_queries = {
-        "kaggle": f"{query} dataset site:kaggle.com/datasets"
+        "kaggle1": f"{query} tabular data csv xlsx dataset site:kaggle.com/datasets",
+        "kaggle2": f"{query} structured data spreadsheet site:kaggle.com/datasets",
+        "kaggle3": f"{query} data analysis csv file site:kaggle.com/datasets"
     }
 
     def which_site(url: str) -> str | None:
@@ -101,15 +104,35 @@ def tavily_search_tool(state: AgentState):
         u = (url or "").lower()
         c = (content or "").lower()
         score = 0.0
+        
+        # Penalize non-columnar datasets heavily
+        non_columnar_keywords = ["image", "images", "photo", "photos", "picture", "pictures", "video", "videos", "audio", "sound", "music", "streetview", "satellite", "visual", "graphics"]
+        if any(x in t for x in non_columnar_keywords) or any(x in c for x in non_columnar_keywords):
+            score -= 3.0  # Penalty for non-columnar datasets
+        
+        # Boost columnar data indicators
         if any(x in u for x in [".csv", ".xlsx", ".json", "/download", "/raw/"]):
             score += 3.0
-        if any(x in c for x in ["csv", "xlsx", "json", "download"]):
+        if any(x in c for x in ["csv", "xlsx", "json", "download", "tabular", "spreadsheet", "dataframe"]):
             score += 2.0
+        
+        # Boost specific columnar data mentions
+        columnar_indicators = ["tabular", "spreadsheet", "dataframe", "rows", "columns", "dataset", "data analysis", "statistics", "table", "records", "entries", "structured data"]
+        if any(x in c for x in columnar_indicators):
+            score += 1.5
+            
+        # Additional boost for common tabular data types
+        if any(x in c for x in ["demographic", "census", "population", "economic", "financial", "sales", "survey", "research", "analytics"]):
+            score += 1.0
+            
+        # Query relevance
         for tok in set(query.lower().split()):
             if tok and (tok in t or tok in c):
                 score += 0.5
+                
         if site == "kaggle":
             score += 0.5
+            
         return score
 
     candidates: list[tuple[str, TavilySearchOutput, float]] = []
@@ -117,7 +140,7 @@ def tavily_search_tool(state: AgentState):
 
     for site, q in site_queries.items():
         try:
-            r = tavily_client.search(query=q, search_depth="basic", max_results=15)
+            r = tavily_client.search(query=q, search_depth="basic", max_results=25)
         except Exception:
             continue
         if not isinstance(r, dict) or "results" not in r:
@@ -141,13 +164,15 @@ def tavily_search_tool(state: AgentState):
     selected: list[TavilySearchOutput] = []
     used_urls: set[str] = set()
 
-    for _, tso, _ in candidates:
-        if len(selected) >= 10:
+    for _, tso, score in candidates:
+        if len(selected) >= 15:
             break
         if tso.url in used_urls:
             continue
-        selected.append(tso)
-        used_urls.add(tso.url)
+        # Include datasets with positive scores, or if we have fewer than 10, include neutral scores too
+        if score > 0 or (len(selected) < 10 and score >= -1.0):
+            selected.append(tso)
+            used_urls.add(tso.url)
 
     return {"tavilySearchOutput": selected, "status": ["Gathered Kaggle urls"]}
 
@@ -194,12 +219,20 @@ def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
             kaggle_description = None
 
         files: List[FileRecord] = []
+        # Define supported columnar file extensions
+        SUPPORTED_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json'}
+        # Define file size limit (100MB)
+        MAX_FILE_SIZE = 100 * 1024 * 1024
+        
         for p in dest_dir.rglob('*'):
             if p.is_file():
                 try:
                     size = p.stat().st_size
+                    # Skip files that are too large or not supported formats
+                    if size > MAX_FILE_SIZE or p.suffix.lower() not in SUPPORTED_EXTENSIONS:
+                        continue
                 except Exception:
-                    size = 0
+                    continue
                 files.append(FileRecord(
                     path=str(p.resolve()),
                     rel_path=str(p.relative_to(dest_dir)),
@@ -226,6 +259,58 @@ def download_kaggle_files(state: AgentState, data_dir: str = './data') -> dict:
 
 def get_metadata(state: AgentState):
     bundles = state.get("download_results", []) if isinstance(state, dict) else []
+    
+    # Import concurrent.futures for parallel processing
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
+    def process_single_file(file) -> FileOutput:
+        """Process a single file to extract metadata"""
+        file_path = file.path
+        file_ext = file.ext.lower()
+        file_size = file.size_bytes
+        
+        fo = FileOutput(
+            file_path=file_path,
+            file_format=file_ext.replace('.', ''),
+            file_size=file_size,
+            num_rows=None,
+            num_columns=None,
+            num_rows_with_missing=None,
+            num_columns_with_missing=None,
+            column_dtypes=None
+        )
+        
+        try:
+            if file_ext == ".csv":
+                df = pd.read_csv(file_path)
+            elif file_ext in [".xlsx", ".xls"]:
+                df = pd.read_excel(file_path)
+            elif file_ext == ".json":
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    df = pd.DataFrame(data)
+                elif isinstance(data, dict):
+                    df = pd.json_normalize(data)
+                else:
+                    df = None
+            else:
+                df = None
+
+            if df is not None:
+                fo.num_rows = int(df.shape[0])
+                fo.num_columns = int(df.shape[1])
+                fo.column_dtypes = {str(col): str(dtype) for col, dtype in df.dtypes.items()}
+                isnull = df.isnull()
+                fo.num_rows_with_missing = int(isnull.any(axis=1).sum())
+                fo.num_columns_with_missing = int(isnull.any(axis=0).sum())
+        except Exception as e:
+            # Log the error for debugging but continue processing
+            print(f"Error processing file {file_path}: {str(e)}")
+            pass
+        
+        return fo
 
     def infer_possibility_simple(files: List[FileOutput]) -> str:
         from collections import Counter
@@ -284,48 +369,33 @@ def get_metadata(state: AgentState):
 
     for bundle in bundles:
         files_for_dataset: List[FileOutput] = []
-        for file in bundle.files:
-            file_path = file.path
-            file_ext = file.ext.lower()
-            file_size = file.size_bytes
-            fo = FileOutput(
-                file_path=file_path,
-                file_format=file_ext.replace('.', ''),
-                file_size=file_size,
-                num_rows=None,
-                num_columns=None,
-                num_rows_with_missing=None,
-                num_columns_with_missing=None,
-                column_dtypes=None
-            )
-            try:
-                if file_ext == ".csv":
-                    df = pd.read_csv(file_path)
-                elif file_ext in [".xlsx", ".xls"]:
-                    df = pd.read_excel(file_path)
-                elif file_ext == ".json":
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                    if isinstance(data, list):
-                        df = pd.DataFrame(data)
-                    elif isinstance(data, dict):
-                        df = pd.json_normalize(data)
-                    else:
-                        df = None
-                else:
-                    df = None
-
-                if df is not None:
-                    fo.num_rows = int(df.shape[0])
-                    fo.num_columns = int(df.shape[1])
-                    fo.column_dtypes = {str(col): str(dtype) for col, dtype in df.dtypes.items()}
-                    isnull = df.isnull()
-                    fo.num_rows_with_missing = int(isnull.any(axis=1).sum())
-                    fo.num_columns_with_missing = int(isnull.any(axis=0).sum())
-            except Exception:
-                pass
-            files_for_dataset.append(fo)
-            file_outputs.append(fo)
+        
+        # Process files in parallel using ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            # Submit all file processing tasks
+            future_to_file = {executor.submit(process_single_file, file): file for file in bundle.files}
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_file):
+                try:
+                    fo = future.result()
+                    files_for_dataset.append(fo)
+                    file_outputs.append(fo)
+                except Exception as e:
+                    # If processing fails, create a basic FileOutput without metadata
+                    file = future_to_file[future]
+                    fo = FileOutput(
+                        file_path=file.path,
+                        file_format=file.ext.replace('.', ''),
+                        file_size=file.size_bytes,
+                        num_rows=None,
+                        num_columns=None,
+                        num_rows_with_missing=None,
+                        num_columns_with_missing=None,
+                        column_dtypes=None
+                    )
+                    files_for_dataset.append(fo)
+                    file_outputs.append(fo)
 
         file_ctx_list = []
         for fo_item in files_for_dataset:
@@ -389,14 +459,18 @@ def get_metadata(state: AgentState):
         if possibility is None:
             possibility = infer_possibility_simple(files_for_dataset)
 
-        ds = DatasetOutput(
-            source_url=bundle.source_url,
-            num_files=len(files_for_dataset),
-            description=description,
-            possibilities=possibility,
-            files=files_for_dataset,
-        )
-        dataset_outputs.append(ds)
+        # Only include datasets that have at least one file with metadata
+        valid_files = [f for f in files_for_dataset if f.num_rows is not None and f.num_columns is not None]
+        
+        if valid_files:  # Only add dataset if it has valid columnar files
+            ds = DatasetOutput(
+                source_url=bundle.source_url,
+                num_files=len(valid_files),
+                description=description,
+                possibilities=possibility,
+                files=valid_files,
+            )
+            dataset_outputs.append(ds)
 
     return {
         "file_outputs": file_outputs,
