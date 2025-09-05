@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Nexora">
+  <title>Nexora</title>
+  <rect width="512" height="512" rx="96" ry="96" fill="#ffffff"/>
+  <rect x="12" y="12" width="488" height="488" rx="90" ry="90" fill="none" stroke="#e5edf7" stroke-width="24"/>
+  <!-- Monoline N -->
+  <path d="M160 360 V160 L352 360 V160" fill="none" stroke="#357ABD" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+
