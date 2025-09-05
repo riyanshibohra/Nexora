@@ -341,25 +341,7 @@ export default function Analysis() {
                 </div>
               </section>
 
-              {/* Plots (left) */}
-              <section className="card plots-card">
-                <div className="summary-sub">Plots</div>
-                <div className="plots-panel">
-                  <div className="preview-placeholder plot-view">
-                    {plotLoading ? 'Generating plot…' : plotError ? (
-                      <div style={{ color: '#ff6b6b', textAlign: 'center', padding: 8 }}>{plotError}</div>
-                    ) : plotImage ? (
-                      <img 
-                        src={plotImage} 
-                        alt="Generated plot" 
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} 
-                      />
-                    ) : 'Plots will appear here.'}
-                  </div>
-                </div>
-              </section>
-
-              {/* Data Preview (right) */}
+              {/* Data Preview (left) */}
               <section className="card data-preview-card">
                 <div className="summary-sub">Data Preview</div>
                 {previewLoading ? (
@@ -380,6 +362,24 @@ export default function Analysis() {
                 ) : (
                   <div className="preview-placeholder">No preview available</div>
                 )}
+              </section>
+
+              {/* Plots (right) */}
+              <section className="card plots-card">
+                <div className="summary-sub">Plots</div>
+                <div className="plots-panel">
+                  <div className="preview-placeholder plot-view">
+                    {plotLoading ? 'Generating plot…' : plotError ? (
+                      <div style={{ color: '#ff6b6b', textAlign: 'center', padding: 8 }}>{plotError}</div>
+                    ) : plotImage ? (
+                      <img 
+                        src={plotImage} 
+                        alt="Generated plot" 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} 
+                      />
+                    ) : 'Plots will appear here.'}
+                  </div>
+                </div>
               </section>
 
               {/* Controls bar (full width, bottom) */}
