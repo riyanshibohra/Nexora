@@ -8,6 +8,8 @@ ipython
 tavily-python
 pandas
 numpy
+matplotlib
+langchain-experimental
 requests
 beautifulsoup4
 openpyxl
