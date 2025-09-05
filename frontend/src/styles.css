@@ -500,7 +500,7 @@ body {
 
 /* Make plots card visually match preview height */
 .plots-card { display: grid; grid-template-rows: auto 1fr; }
-.plots-card .plot-view { height: 375px; overflow: hidden; display: grid; place-items: center; }
+.plots-card .plot-view { height: 425px; overflow: auto; display: grid; place-items: center; }
 
 /* Bottom full-width control bar */
 .plot-controls-bar { display: grid; gap: 10px; grid-template-rows: auto auto; }
