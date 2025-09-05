@@ -9,9 +9,12 @@ from pydantic import BaseModel
 
 from .agent import run_agent
 from .db import init_db, store_from_agent_state, list_datasets, get_dataset_with_files_by_url, reset_db
+from .plot_agent import PlotAgent
 
 
 app = FastAPI(title="Nexora API")
+plot_agent = PlotAgent()
+
 
 # Allow local frontend dev server
 app.add_middleware(
@@ -236,4 +239,33 @@ def download_single_file(source_url: str, file_name: str) -> FileResponse:
 
     safe = _slugify_filename(file_name)
     return FileResponse(path, filename=safe)
+
+
+# -------------------- Plotting endpoints --------------------
+
+class PlotSuggestRequest(BaseModel):
+    file_path: str
+
+
+@app.post("/plot/suggestions")
+def plot_suggestions(body: PlotSuggestRequest) -> Dict[str, Any]:
+    try:
+        suggestions = plot_agent.suggest(body.file_path)
+        return {"suggestions": suggestions}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+class PlotGenerateRequest(BaseModel):
+    file_path: str
+    prompt: str
+
+
+@app.post("/plot/generate")
+def plot_generate(body: PlotGenerateRequest) -> Dict[str, Any]:
+    try:
+        img = plot_agent.generate_plot(body.file_path, body.prompt)
+        return {"image": img}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 

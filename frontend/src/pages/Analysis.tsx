@@ -51,6 +51,10 @@ export default function Analysis() {
   const [preview, setPreview] = useState<{ headers: string[]; rows: any[] } | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'type'>('name')
+  const [plotPrompt, setPlotPrompt] = useState('')
+  const [plotImage, setPlotImage] = useState<string | null>(null)
+  const [plotLoading, setPlotLoading] = useState(false)
+  const [plotSuggestions, setPlotSuggestions] = useState<string[]>([])
 
   useEffect(() => {
     let cancelled = false
@@ -128,6 +132,44 @@ export default function Analysis() {
     }
     loadPrev()
   }, [dataset, activeIdx])
+
+  // Load plot suggestions when active file changes
+  useEffect(() => {
+    async function loadSuggestions() {
+      if (!dataset || !active) return
+      try {
+        const res = await fetch(`${API_BASE}/plot/suggestions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_path: active.file_path })
+        })
+        const data = await res.json()
+        setPlotSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+      } catch (e) {
+        setPlotSuggestions([])
+      }
+    }
+    loadSuggestions()
+  }, [dataset, activeIdx])
+
+  async function onGeneratePlot() {
+    if (!dataset || !active || !plotPrompt.trim()) return
+    setPlotLoading(true)
+    setPlotImage(null)
+    try {
+      const res = await fetch(`${API_BASE}/plot/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_path: active.file_path, prompt: plotPrompt })
+      })
+      const data = await res.json()
+      setPlotImage(data.image || null)
+    } catch (e) {
+      setPlotImage(null)
+    } finally {
+      setPlotLoading(false)
+    }
+  }
 
   return (
     <div className="universe" style={{ minHeight: '100vh' }}>
@@ -260,13 +302,43 @@ export default function Analysis() {
                 </div>
               </section>
 
-              {/* Data Preview – now full-width across the grid */}
-              <section className="card" style={{ gridColumn: '1 / -1' }}>
+              {/* Plots (left) */}
+              <section className="card plots-card">
+                <div className="summary-sub">Plots</div>
+                <div className="plots-panel">
+                  <div className="preview-placeholder plot-view">
+                    {plotLoading ? 'Generating plot…' : plotImage ? (
+                      <img 
+                        src={plotImage} 
+                        alt="Generated plot" 
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} 
+                      />
+                    ) : 'Plots will appear here.'}
+                  </div>
+                  <div className="plots-controls">
+                    <input className="plots-input" value={plotPrompt} onChange={e => setPlotPrompt(e.target.value)} placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
+                    <div className="plots-actions">
+                      <button className="button-secondary" type="button" onClick={() => { if (plotSuggestions[0]) setPlotPrompt(plotSuggestions[0]) }}>Suggest</button>
+                      <button className="pill-action" type="button" disabled={plotLoading || !plotPrompt.trim()} onClick={onGeneratePlot}>{plotLoading ? 'Generating…' : 'Generate plots'}</button>
+                    </div>
+                  </div>
+                  {plotSuggestions && plotSuggestions.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {plotSuggestions.map((s, i) => (
+                        <button key={i} className="pill-action" type="button" onClick={() => setPlotPrompt(s)} style={{ minWidth: 0 }}>{s}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Data Preview (right) */}
+              <section className="card data-preview-card">
                 <div className="summary-sub">Data Preview</div>
                 {previewLoading ? (
                   <div className="preview-placeholder">Loading preview…</div>
                 ) : preview && preview.headers.length > 0 ? (
-                  <div style={{ overflow: 'auto' }}>
+                  <div className="preview-scroll">
                     <table className="preview-table">
                       <thead>
                         <tr>{preview.headers.map(h => <th key={h}>{h}</th>)}</tr>
@@ -283,21 +355,6 @@ export default function Analysis() {
                 )}
               </section>
 
-              {/* Plots placeholder and controls (UI only) */}
-              <section className="card" style={{ gridColumn: '1 / -1' }}>
-                <div className="summary-sub">Plots</div>
-                <div className="plots-panel">
-                  <div className="preview-placeholder" style={{ height: 200 }}>Plots will appear here.</div>
-                  <div className="plots-controls">
-                    <input className="plots-input" placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
-                    <div className="plots-actions">
-                      <button className="button-secondary" type="button">Chat</button>
-                      <button className="pill-action" type="button">Generate plots</button>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
               {/* Removed full-width AI Insights to keep layout clean */}
             </div>
           )}
@@ -306,5 +363,6 @@ export default function Analysis() {
     </div>
   )
 }
+
 
 

@@ -442,7 +442,7 @@ body {
   border-radius: 12px; 
   box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02), 0 8px 40px rgba(0,0,0,0.35); 
   height: calc(100vh - 88px); 
-  overflow: auto; /* allow page to scroll on smaller screens */
+  overflow: hidden; /* keep page fixed, inner cards can scroll */
   padding: 16px; 
   display: flex;
   flex-direction: column;
@@ -452,7 +452,7 @@ body {
 /* Make analysis grid fit available space */
 .analysis-page .analysis-grid { 
   display: grid; 
-  grid-template-columns: 0.9fr 1.1fr; 
+  grid-template-columns: 1fr 1fr; 
   gap: 16px; 
   height: auto; /* let content size naturally */
   overflow: visible; /* ensure following sections are accessible */
@@ -493,6 +493,14 @@ body {
   min-height: 80px;
   margin-bottom: 8px;
 }
+
+/* Make the Data Preview card content scroll within a fixed height */
+.data-preview-card { display: grid; grid-template-rows: auto 1fr; }
+.data-preview-card .preview-scroll { overflow: auto; max-height: 420px; }
+
+/* Make plots card visually match preview height */
+.plots-card { display: grid; grid-template-rows: auto 1fr auto; }
+.plots-card .plot-view { height: 235px; overflow: hidden; display: grid; place-items: center; }
 
 /* Plots panel layout */
 .plots-panel { display: grid; gap: 12px; }
