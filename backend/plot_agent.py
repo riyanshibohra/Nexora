@@ -87,6 +87,115 @@ class PlotAgent:
                 pass
         return {"numeric": numeric_cols, "datetime": datetime_cols, "categorical": categorical_cols}
 
+    # ---------- Professional style helpers ----------
+    def _apply_pro_style(self) -> None:
+        plt.style.use('seaborn-v0_8-whitegrid')
+        plt.rcParams.update({
+            'figure.figsize': (8, 4.5),
+            'figure.dpi': 140,
+            'axes.titlesize': 14,
+            'axes.labelsize': 11,
+            'xtick.labelsize': 9,
+            'ytick.labelsize': 9,
+            'legend.fontsize': 10,
+            'axes.spines.top': False,
+            'axes.spines.right': False,
+        })
+
+    def _palette(self, n: int) -> List[str]:
+        base = ["#6366F1", "#22C55E", "#EF4444", "#06B6D4", "#F59E0B", "#8B5CF6", "#10B981", "#3B82F6"]
+        if n <= len(base):
+            return base[:n]
+        # Cycle if needed
+        return [base[i % len(base)] for i in range(n)]
+
+    # ---------- Planner: choose best chart ----------
+    def plan(self, df: pd.DataFrame) -> Dict[str, Any]:
+        kinds = self._classify_columns(df)
+        numeric_cols, datetime_cols, categorical_cols = kinds["numeric"], kinds["datetime"], kinds["categorical"]
+        plan: Dict[str, Any] = {"type": None}
+        # 1) Correlation if many numerics
+        if len(numeric_cols) >= 6:
+            plan.update({"type": "corr", "cols": numeric_cols[:10]})
+            return plan
+        # 2) Time series if there is datetime + numeric
+        if datetime_cols and numeric_cols:
+            plan.update({"type": "timeseries", "x": datetime_cols[0], "y": numeric_cols[0]})
+            return plan
+        # 3) Top-N bar for categorical + numeric
+        if categorical_cols and numeric_cols:
+            plan.update({"type": "bar_topn", "cat": categorical_cols[0], "val": numeric_cols[0], "n": 10})
+            return plan
+        # 4) Histogram for a single numeric
+        if numeric_cols:
+            plan.update({"type": "hist", "col": numeric_cols[0]})
+            return plan
+        # 5) Frequency bar for a categorical-only dataset
+        if categorical_cols:
+            plan.update({"type": "freq", "col": categorical_cols[0], "n": 15})
+            return plan
+        # Default: corr even if few columns
+        plan.update({"type": "corr", "cols": numeric_cols[:10]})
+        return plan
+
+    # ---------- Deterministic renderers ----------
+    def render(self, df: pd.DataFrame, plan: Dict[str, Any]) -> None:
+        self._apply_pro_style()
+        t = plan.get("type")
+        if t == "corr":
+            cols = plan.get("cols", [])
+            if not cols:
+                cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])][:10]
+            corr = df[cols].corr(numeric_only=True)
+            fig, ax = plt.subplots()
+            im = ax.imshow(corr.values, cmap='coolwarm', vmin=-1, vmax=1)
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            ax.set_xticks(range(len(cols))); ax.set_yticks(range(len(cols)))
+            ax.set_xticklabels(cols, rotation=45, ha='right'); ax.set_yticklabels(cols)
+            for i in range(len(cols)):
+                for j in range(len(cols)):
+                    val = corr.values[i, j]
+                    ax.text(j, i, f"{val:.2f}", ha='center', va='center', color='white' if abs(val) > 0.5 else '#0b1220', fontsize=8)
+            ax.set_title("Correlation Matrix")
+            return
+        if t == "timeseries":
+            xcol, ycol = plan["x"], plan["y"]
+            tmp = df[[xcol, ycol]].copy()
+            tmp[xcol] = pd.to_datetime(tmp[xcol], errors='coerce')
+            tmp = tmp.dropna()
+            if tmp[xcol].nunique() > 200:
+                tmp = tmp.set_index(xcol).resample('M').mean().reset_index()
+            fig, ax = plt.subplots()
+            ax.plot(tmp[xcol], tmp[ycol], color="#3B82F6", lw=1.8)
+            ax.set_title(f"{ycol} over {xcol}")
+            ax.set_xlabel(str(xcol)); ax.set_ylabel(str(ycol))
+            return
+        if t == "bar_topn":
+            cat, val, n = plan["cat"], plan["val"], plan.get("n", 10)
+            tmp = df.groupby(cat)[val].sum(numeric_only=True).sort_values(ascending=False).head(n)
+            fig, ax = plt.subplots()
+            bars = ax.barh(tmp.index.astype(str)[::-1], tmp.values[::-1], color=self._palette(min(n, 8))[0])
+            ax.set_title(f"Top {n} {cat} by {val}")
+            ax.set_xlabel(str(val)); ax.set_ylabel(str(cat))
+            ax.bar_label(bars, fmt='%.0f', padding=3, color='#eaf2ff')
+            return
+        if t == "hist":
+            col = plan["col"]
+            fig, ax = plt.subplots()
+            data = pd.to_numeric(df[col], errors='coerce').dropna()
+            ax.hist(data, bins=40, color="#6366F1", alpha=0.9)
+            ax.set_title(f"Distribution of {col}")
+            ax.set_xlabel(str(col)); ax.set_ylabel("Count")
+            return
+        if t == "freq":
+            col, n = plan["col"], plan.get("n", 15)
+            tmp = df[col].astype(str).value_counts().head(n)
+            fig, ax = plt.subplots()
+            bars = ax.barh(tmp.index[::-1], tmp.values[::-1], color="#06B6D4")
+            ax.set_title(f"Top {n} {col} by frequency")
+            ax.set_xlabel("Count"); ax.set_ylabel(str(col))
+            ax.bar_label(bars, padding=3, color='#eaf2ff')
+            return
     def _read_dataframe(self, file_path: str, nrows: int | None = None) -> pd.DataFrame:
         """Read a supported file into a DataFrame. Optionally limit rows for speed."""
         path = file_path.lower()
@@ -255,7 +364,12 @@ class PlotAgent:
                 )
                 exec(corr_code, env, env)
             else:
-                exec(code, env, env)
+                # First try deterministic planner if the prompt is vague
+                if len(prompt.strip()) < 6:
+                    planned = self.plan(df)
+                    self.render(df, planned)
+                else:
+                    exec(code, env, env)
             # Enforce final figure size and layout to fit UI slot
             fig = plt.gcf()
             try:
@@ -272,39 +386,10 @@ class PlotAgent:
             return f"data:image/png;base64,{img_b64}"
         except Exception as e:
             logger.exception("Plot generation failed")
-            # Fallback: auto-generate a sensible plot with heuristics
+            # Fallback: auto-generate a sensible plot with planner
             try:
-                fig, ax = plt.subplots()
-                if datetime_cols and numeric_cols:
-                    xcol, ycol = datetime_cols[0], numeric_cols[0]
-                    try:
-                        df[xcol] = pd.to_datetime(df[xcol], errors='coerce')
-                    except Exception:
-                        pass
-                    tmp = df[[xcol, ycol]].dropna()
-                    if tmp[xcol].nunique() > 200:
-                        tmp = tmp.set_index(xcol).resample('M').mean().reset_index()
-                    ax.plot(tmp[xcol], tmp[ycol], color="#6366F1")
-                    ax.set_title(f"{ycol} over {xcol}")
-                    ax.set_xlabel(str(xcol)); ax.set_ylabel(str(ycol))
-                elif categorical_cols and numeric_cols:
-                    cat, val = categorical_cols[0], numeric_cols[0]
-                    tmp = df.groupby(cat)[val].sum(numeric_only=True).sort_values(ascending=False).head(15)
-                    ax.bar(tmp.index.astype(str), tmp.values, color="#6366F1")
-                    ax.set_title(f"Top categories by {val}")
-                    ax.set_xlabel(str(cat)); ax.set_ylabel(str(val))
-                    ax.tick_params(axis='x', rotation=45)
-                elif numeric_cols:
-                    col = numeric_cols[0]
-                    ax.hist(pd.to_numeric(df[col], errors='coerce').dropna(), bins=30, color="#6366F1", alpha=0.9)
-                    ax.set_title(f"Distribution of {col}")
-                    ax.set_xlabel(str(col)); ax.set_ylabel("Count")
-                elif categorical_cols:
-                    col = categorical_cols[0]
-                    tmp = df[col].astype(str).value_counts().head(15)
-                    ax.bar(tmp.index, tmp.values, color="#6366F1")
-                    ax.set_title(f"Top {col} by frequency")
-                    ax.tick_params(axis='x', rotation=45)
+                planned = self.plan(df)
+                self.render(df, planned)
                 plt.tight_layout(pad=0.6)
                 buf = io.BytesIO()
                 plt.savefig(buf, format='png', dpi=130)

@@ -196,6 +196,20 @@ export default function Analysis() {
     }
   }
 
+  function onDownloadPlot() {
+    if (!plotImage) return
+    try {
+      const a = document.createElement('a')
+      a.href = plotImage
+      a.download = 'nexora_plot.png'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    } catch (e) {
+      console.error('Download failed', e)
+    }
+  }
+
   return (
     <div className="universe" style={{ minHeight: '100vh' }}>
       <div className="results-layout analysis-page" style={{ gridTemplateColumns: '280px 1fr' }}>
@@ -380,6 +394,7 @@ export default function Analysis() {
                 <div className="controls-row">
                   <input className="plots-input" value={plotPrompt} onChange={e => setPlotPrompt(e.target.value)} placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
                   <div className="plots-actions">
+                    <button className="pill-action" type="button" onClick={onDownloadPlot} disabled={!plotImage}>Download PNG</button>
                     <button className="button-secondary" type="button" onClick={reloadSuggestions}>Suggest</button>
                     <button className="pill-action" type="button" disabled={plotLoading || !plotPrompt.trim()} onClick={onGeneratePlot}>{plotLoading ? 'Generating…' : 'Generate plots'}</button>
                   </div>
