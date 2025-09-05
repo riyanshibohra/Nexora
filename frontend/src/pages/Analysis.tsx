@@ -395,7 +395,6 @@ export default function Analysis() {
                   <input className="plots-input" value={plotPrompt} onChange={e => setPlotPrompt(e.target.value)} placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
                   <div className="plots-actions">
                     <button className="pill-action" type="button" onClick={onDownloadPlot} disabled={!plotImage}>Download PNG</button>
-                    <button className="button-secondary" type="button" onClick={reloadSuggestions}>Suggest</button>
                     <button className="pill-action" type="button" disabled={plotLoading || !plotPrompt.trim()} onClick={onGeneratePlot}>{plotLoading ? 'Generating…' : 'Generate plots'}</button>
                   </div>
                 </div>
