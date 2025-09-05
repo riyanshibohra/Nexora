@@ -1,6 +1,5 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react'
-import { QuickPlots } from '../components/QuickPlots'
 
 type FileOutput = {
   id?: string
@@ -113,7 +112,7 @@ export default function Analysis() {
         url.searchParams.set('source_url', dataset.source_url)
         const fname = active.file_path.split('/').slice(-1)[0]
         url.searchParams.set('file_name', fname)
-        url.searchParams.set('limit', '10')
+        url.searchParams.set('limit', '200')
         const res = await fetch(url.toString())
         const data = await res.json()
         setPreview({ headers: data.headers || [], rows: data.rows || [] })
@@ -261,25 +260,8 @@ export default function Analysis() {
                 </div>
               </section>
 
-              <section className="card">
-                <div className="summary-sub">Quick Plots</div>
-                {active ? (
-                  <QuickPlots
-                    columnDtypes={active.column_dtypes || {}}
-                    numRows={active.num_rows || 0}
-                    numColumns={active.num_columns || 0}
-                    missingRows={active.num_rows_with_missing || 0}
-                    missingColumns={active.num_columns_with_missing || 0}
-                    dataQuality={active.num_rows && active.num_rows_with_missing 
-                      ? Math.round(((active.num_rows - active.num_rows_with_missing) / active.num_rows) * 100)
-                      : 100}
-                  />
-                ) : (
-                  <div className="preview-placeholder">Select a file to view plots</div>
-                )}
-              </section>
-
-              <section className="card">
+              {/* Data Preview – now full-width across the grid */}
+              <section className="card" style={{ gridColumn: '1 / -1' }}>
                 <div className="summary-sub">Data Preview</div>
                 {previewLoading ? (
                   <div className="preview-placeholder">Loading preview…</div>
@@ -301,10 +283,22 @@ export default function Analysis() {
                 )}
               </section>
 
+              {/* Plots placeholder and controls (UI only) */}
               <section className="card" style={{ gridColumn: '1 / -1' }}>
-                <div className="summary-sub">AI Insights</div>
-                <div className="preview-placeholder">Summary and task suggestions will appear here.</div>
+                <div className="summary-sub">Plots</div>
+                <div className="plots-panel">
+                  <div className="preview-placeholder" style={{ height: 200 }}>Plots will appear here.</div>
+                  <div className="plots-controls">
+                    <input className="plots-input" placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
+                    <div className="plots-actions">
+                      <button className="button-secondary" type="button">Chat</button>
+                      <button className="pill-action" type="button">Generate plots</button>
+                    </div>
+                  </div>
+                </div>
               </section>
+
+              {/* Removed full-width AI Insights to keep layout clean */}
             </div>
           )}
         </main>

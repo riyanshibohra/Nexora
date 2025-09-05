@@ -442,7 +442,7 @@ body {
   border-radius: 12px; 
   box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.02), 0 8px 40px rgba(0,0,0,0.35); 
   height: calc(100vh - 88px); 
-  overflow: hidden;
+  overflow: auto; /* allow page to scroll on smaller screens */
   padding: 16px; 
   display: flex;
   flex-direction: column;
@@ -454,8 +454,8 @@ body {
   display: grid; 
   grid-template-columns: 0.9fr 1.1fr; 
   gap: 16px; 
-  height: 100%;
-  overflow: hidden;
+  height: auto; /* let content size naturally */
+  overflow: visible; /* ensure following sections are accessible */
 }
 
 .analysis-page .card { 
@@ -481,16 +481,31 @@ body {
   margin-bottom: 8px;
 }
 .analysis-page .card:nth-child(4) {
-  height: 300px;
+  height: auto;
   margin-bottom: 8px;
 }
 
+/* Previously the last card spanned full width for the old AI Insights section.
+   Now we want standard 2-column layout, so disable that behavior. */
 .analysis-page .card:last-child { 
-  grid-column: 1 / -1; 
-  height: calc(100% - 370px);
+  grid-column: auto; 
+  height: auto;
   min-height: 80px;
   margin-bottom: 8px;
 }
+
+/* Plots panel layout */
+.plots-panel { display: grid; gap: 12px; }
+.plots-controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.plots-input { 
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.plots-actions { display: flex; gap: 10px; }
 
 /* Make content areas scrollable individually */
 .analysis-page .preview-table { 
@@ -588,6 +603,53 @@ body {
   letter-spacing: 0.3px;
 }
 
+/* Simple bars */
+.bar-chart { display: grid; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 1fr 5fr 50px; align-items: center; gap: 8px; }
+.bar-label { color: #eaf2ff; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { background: rgba(115,179,255,0.12); border: 1px solid rgba(115,179,255,0.25); border-radius: 6px; height: 10px; position: relative; }
+.bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #4a9eff, #7de0ff); border-radius: 6px; }
+.bar-value { font-size: 11px; color: #a9c7ff; text-align: right; }
+
+/* Histogram */
+.histogram { display: grid; grid-auto-flow: column; align-items: end; gap: 8px; height: 120px; padding: 8px 4px; }
+.hist-bar { display: grid; grid-template-rows: 1fr auto; align-items: end; }
+.hist-fill { width: 16px; background: linear-gradient(180deg, #73b3ff, #4a9eff); border: 1px solid rgba(115,179,255,0.3); border-radius: 4px 4px 0 0; }
+.hist-label { font-size: 10px; color: #a9c7ff; text-align: center; margin-top: 6px; }
+
+/* Stats */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.stat-grid.small { grid-template-columns: repeat(3, 1fr); }
+.stat-item { background: rgba(115,179,255,0.06); border: 1px solid rgba(115,179,255,0.18); border-radius: 8px; padding: 8px; display: flex; justify-content: space-between; font-size: 11px; }
+.stat-k { color: #a9c7ff; }
+.stat-v { color: #eaf2ff; font-weight: 700; }
+
+/* Weekday bars */
+.weekday-bars { display: grid; grid-auto-flow: column; align-items: end; gap: 10px; height: 120px; margin-top: 8px; }
+.weekday-item { display: grid; grid-template-rows: 1fr auto; align-items: end; }
+.weekday-bar { width: 18px; background: #7dd34d; border: 1px solid rgba(125,211,77,0.3); border-radius: 4px 4px 0 0; }
+.weekday-label { font-size: 10px; color: #a9c7ff; text-align: center; margin-top: 6px; }
+
+/* Numeric snapshot */
+.numeric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.numeric-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(115,179,255,0.15); border-radius: 8px; padding: 10px; }
+.numeric-head { font-size: 12px; font-weight: 700; color: #eaf2ff; margin-bottom: 6px; }
+.sparkline { height: 28px; margin-bottom: 8px; }
+/* Numeric summary */
+.num-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.num-summary-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(115,179,255,0.15); border-radius: 8px; padding: 10px; }
+/* Coverage */
+.coverage-grid { display: grid; gap: 8px; }
+.coverage-row { display: grid; grid-template-columns: 1fr 5fr 50px; align-items: center; gap: 8px; }
+.coverage-bar { background: rgba(115,179,255,0.12); border: 1px solid rgba(115,179,255,0.25); border-radius: 6px; height: 10px; position: relative; }
+/* Trend chart */
+.trend-chart { height: 120px; border: 1px solid rgba(115,179,255,0.18); border-radius: 8px; background: rgba(255,255,255,0.02); margin-bottom: 8px; }
+/* Correlation grid */
+.corr-grid { display: grid; gap: 4px; margin-top: 8px; align-items: stretch; }
+.corr-h { font-size: 10px; color: #a9c7ff; text-align: center; padding: 4px 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(115,179,255,0.12); border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: default; }
+.corr-cell { font-size: 10px; color: #eaf2ff; display: grid; place-items: center; border: 1px solid rgba(115,179,255,0.12); border-radius: 4px; padding: 4px; }
+.corr-cell:hover { outline: 1px solid rgba(115,179,255,0.5); }
+
 /* Plot Navigation */
 .plot-navigation {
   display: flex;
@@ -626,6 +688,43 @@ body {
   font-size: 11px;
   font-weight: 500;
 }
+
+/* Side navigation arrows for Quick Plots */
+.plot-stage { position: relative; padding: 0 44px; }
+.nav-side { 
+  position: absolute; 
+  top: 12px; 
+  width: 34px; 
+  height: 34px; 
+  border-radius: 50%; 
+  border: 1px solid rgba(115,179,255,0.4);
+  background: rgba(115,179,255,0.1);
+  color: #eaf2ff; 
+  display: grid; place-items: center; 
+  font-size: 22px; 
+  cursor: pointer; 
+  transition: all .2s ease; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.nav-side:hover { background: rgba(115,179,255,0.2); border-color: rgba(115,179,255,0.7); }
+.nav-side:disabled { opacity: .5; cursor: not-allowed; }
+.nav-side.left { left: 6px; }
+.nav-side.right { right: 6px; }
+
+/* Ensure plot-content stays within the card and looks centered */
+.quick-plots-container { padding-bottom: 8px; }
+.quick-plots-container .plot-content { margin: 8px 0; }
+.quick-plots-container .plot-content > *:last-child { margin-bottom: 0; }
+/* bound inner plot area and allow internal scroll without bleeding */
+.plot-scroll { max-width: 100%; overflow: auto; padding-bottom: 6px; }
+
+/* Tighten correlation grid spacing inside card */
+.corr-grid { margin: 8px 0 0 0; min-width: 520px; }
+.corr-h { max-width: 120px; }
+.corr-cell { min-height: 28px; }
+
+/* Keep the inner card from exceeding */
+.analysis-page .card .plot-content { box-sizing: border-box; }
 
 /* Missing Data Heatmap */
 .heatmap-container {
