@@ -489,7 +489,7 @@ body {
    Now we want standard 2-column layout, so disable that behavior. */
 .analysis-page .card:last-child { 
   grid-column: auto; 
-  height: auto;
+  height: 100px;
   min-height: 80px;
   margin-bottom: 8px;
 }
@@ -500,23 +500,23 @@ body {
 
 /* Make plots card visually match preview height */
 .plots-card { display: grid; grid-template-rows: auto 1fr; }
-.plots-card .plot-view { height: 425px; overflow: auto; display: grid; place-items: center; }
+.plots-card .plot-view { height: 435px; overflow: hidden; display: grid; place-items: center; }
 
 /* Bottom full-width control bar */
-.plot-controls-bar { display: grid; gap: 10px; grid-template-rows: auto auto; }
-.plot-controls-bar .suggestions-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.plot-controls-bar { display: grid; gap: 8px; grid-template-rows: auto auto; }
+.plot-controls-bar .suggestions-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .plot-controls-bar .controls-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 
 /* Plots panel layout */
-.plots-panel { display: grid; gap: 12px; }
+.plots-panel { display: grid; gap: 8px; }
 .plots-controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 .plots-input { 
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   color: white;
-  padding: 12px 14px;
+  padding: 10px 12px; /* compact so it fits */
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .plots-actions { display: flex; gap: 10px; }
 
@@ -1086,7 +1086,7 @@ body {
 .backlink { color: #a9c7ff; text-decoration: none; opacity: 0.8; }
 .backlink:hover { opacity: 1; text-decoration: underline; }
 .toolbar-actions { display: grid; grid-auto-flow: column; gap: 10px; align-items: center; }
-.pill-action { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; min-height: 32px; min-width: 120px; border-radius: 999px; border: 1px solid rgba(115,179,255,0.35); background: rgba(115,179,255,0.06); color: #eaf2ff; cursor: pointer; font-size: 12px; font-weight: 600; line-height: 1; white-space: nowrap; }
+.pill-action { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; min-height: 20px; min-width: 120px; border-radius: 999px; border: 1px solid rgba(115,179,255,0.35); background: rgba(115,179,255,0.06); color: #eaf2ff; cursor: pointer; font-size: 12px; font-weight: 600; line-height: 0.7; white-space: nowrap; }
 .pill-action[data-active="true"], .pill-action:hover { background: rgba(115,179,255,0.14); }
 .pill-action:disabled { opacity: 0.5; cursor: not-allowed; }
 

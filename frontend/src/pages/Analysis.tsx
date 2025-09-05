@@ -53,6 +53,7 @@ export default function Analysis() {
   const [sortBy, setSortBy] = useState<'name' | 'type'>('name')
   const [plotPrompt, setPlotPrompt] = useState('')
   const [plotImage, setPlotImage] = useState<string | null>(null)
+  const [plotError, setPlotError] = useState<string | null>(null)
   const [plotLoading, setPlotLoading] = useState(false)
   const [plotSuggestions, setPlotSuggestions] = useState<string[]>([])
 
@@ -171,15 +172,24 @@ export default function Analysis() {
     if (!dataset || !active || !plotPrompt.trim()) return
     setPlotLoading(true)
     setPlotImage(null)
+    setPlotError(null)
     try {
       const res = await fetch(`${API_BASE}/plot/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ file_path: active.file_path, prompt: plotPrompt })
       })
-      const data = await res.json()
-      setPlotImage(data.image || null)
+      if (!res.ok) {
+        let detail = 'Failed to generate plot'
+        try { const j = await res.json(); detail = j?.detail || detail } catch {}
+        setPlotError(detail)
+        setPlotImage(null)
+      } else {
+        const data = await res.json()
+        setPlotImage(data.image || null)
+      }
     } catch (e) {
+      setPlotError((e as any)?.message || 'Error generating plot')
       setPlotImage(null)
     } finally {
       setPlotLoading(false)
@@ -322,7 +332,9 @@ export default function Analysis() {
                 <div className="summary-sub">Plots</div>
                 <div className="plots-panel">
                   <div className="preview-placeholder plot-view">
-                    {plotLoading ? 'Generating plot…' : plotImage ? (
+                    {plotLoading ? 'Generating plot…' : plotError ? (
+                      <div style={{ color: '#ff6b6b', textAlign: 'center', padding: 8 }}>{plotError}</div>
+                    ) : plotImage ? (
                       <img 
                         src={plotImage} 
                         alt="Generated plot" 
