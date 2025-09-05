@@ -477,11 +477,11 @@ body {
 }
 
 .analysis-page .card:nth-child(3) {
-  height: 300px;
+  height: 450px;
   margin-bottom: 8px;
 }
 .analysis-page .card:nth-child(4) {
-  height: auto;
+  height: 450px;
   margin-bottom: 8px;
 }
 
@@ -499,8 +499,13 @@ body {
 .data-preview-card .preview-scroll { overflow: auto; max-height: 420px; }
 
 /* Make plots card visually match preview height */
-.plots-card { display: grid; grid-template-rows: auto 1fr auto; }
-.plots-card .plot-view { height: 235px; overflow: hidden; display: grid; place-items: center; }
+.plots-card { display: grid; grid-template-rows: auto 1fr; }
+.plots-card .plot-view { height: 375px; overflow: hidden; display: grid; place-items: center; }
+
+/* Bottom full-width control bar */
+.plot-controls-bar { display: grid; gap: 10px; grid-template-rows: auto auto; }
+.plot-controls-bar .suggestions-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.plot-controls-bar .controls-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 
 /* Plots panel layout */
 .plots-panel { display: grid; gap: 12px; }

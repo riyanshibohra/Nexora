@@ -152,6 +152,21 @@ export default function Analysis() {
     loadSuggestions()
   }, [dataset, activeIdx])
 
+  async function reloadSuggestions() {
+    if (!dataset || !active) return
+    try {
+      const res = await fetch(`${API_BASE}/plot/suggestions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_path: active.file_path })
+      })
+      const data = await res.json()
+      setPlotSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+    } catch (e) {
+      setPlotSuggestions([])
+    }
+  }
+
   async function onGeneratePlot() {
     if (!dataset || !active || !plotPrompt.trim()) return
     setPlotLoading(true)
@@ -315,20 +330,6 @@ export default function Analysis() {
                       />
                     ) : 'Plots will appear here.'}
                   </div>
-                  <div className="plots-controls">
-                    <input className="plots-input" value={plotPrompt} onChange={e => setPlotPrompt(e.target.value)} placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
-                    <div className="plots-actions">
-                      <button className="button-secondary" type="button" onClick={() => { if (plotSuggestions[0]) setPlotPrompt(plotSuggestions[0]) }}>Suggest</button>
-                      <button className="pill-action" type="button" disabled={plotLoading || !plotPrompt.trim()} onClick={onGeneratePlot}>{plotLoading ? 'Generating…' : 'Generate plots'}</button>
-                    </div>
-                  </div>
-                  {plotSuggestions && plotSuggestions.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {plotSuggestions.map((s, i) => (
-                        <button key={i} className="pill-action" type="button" onClick={() => setPlotPrompt(s)} style={{ minWidth: 0 }}>{s}</button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </section>
 
@@ -353,6 +354,24 @@ export default function Analysis() {
                 ) : (
                   <div className="preview-placeholder">No preview available</div>
                 )}
+              </section>
+
+              {/* Controls bar (full width, bottom) */}
+              <section className="card plot-controls-bar" style={{ gridColumn: '1 / -1' }}>
+                {plotSuggestions && plotSuggestions.length > 0 && (
+                  <div className="suggestions-row">
+                    {plotSuggestions.map((s, i) => (
+                      <button key={i} className="pill-action" type="button" onClick={() => setPlotPrompt(s)} style={{ minWidth: 0 }}>{s}</button>
+                    ))}
+                  </div>
+                )}
+                <div className="controls-row">
+                  <input className="plots-input" value={plotPrompt} onChange={e => setPlotPrompt(e.target.value)} placeholder="Describe the plot you want (e.g., 'Line chart of sales over time')" />
+                  <div className="plots-actions">
+                    <button className="button-secondary" type="button" onClick={reloadSuggestions}>Suggest</button>
+                    <button className="pill-action" type="button" disabled={plotLoading || !plotPrompt.trim()} onClick={onGeneratePlot}>{plotLoading ? 'Generating…' : 'Generate plots'}</button>
+                  </div>
+                </div>
               </section>
 
               {/* Removed full-width AI Insights to keep layout clean */}
