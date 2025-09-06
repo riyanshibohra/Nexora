@@ -2,18 +2,7 @@
   
   <h1>Nexora: Data Explorer Agent</h1>
   <p>Agentic dataset discovery, profiling, and visualization. From query to analysis‑ready data in minutes.</p>
-  
-  <p>
-    <a href="https://github.com/riyanshibohra/Nexora">GitHub</a>
-    ·
-    <a href="#-features">Features</a>
-    ·
-    <a href="#-quickstart">Quickstart</a>
-    ·
-    <a href="#-architecture">Architecture</a>
-    ·
-    <a href="#-api">API</a>
-  </p>
+
 </div>
 
 <div align="center">
@@ -43,8 +32,7 @@
 
 ## ✨ Overview
 
-Nexora is an AI‑native “data universe explorer” that turns a plain‑English query into curated, profiled, and visualizable datasets. It runs an agentic workflow to search Kaggle, download relevant columnar files (CSV/XLSX/JSON), profile them with pandas, and generate safe matplotlib plots via LLM codegen - all surfaced through a clean FastAPI backend and a React + Three.js frontend.
-
+Ask for data in plain English, and Nexora finds, profiles, and visualizes it for you.
 ---
 
 ## 🎥 Demo Video
@@ -143,15 +131,6 @@ Key endpoints:
 - GET `/download-dataset-zip` — Zip all available files
 - POST `/plot/suggestions` — Heuristic plot prompts
 - POST `/plot/generate` — LLM‑generated matplotlib plot
-
----
-
-## 🖥️ Frontend Highlights
-
-- Landing search with typewriter prompt and DataMesh background
-- Results view with a galaxy‑style visualization (Three.js)
-- Dataset modal and analysis page with schema/missingness and previews
-- Promptable plot generation with suggestions and one‑click export
 
 ---
 
