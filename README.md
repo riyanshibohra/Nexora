@@ -47,6 +47,12 @@ Nexora is an AI‑native “data universe explorer” that turns a plain‑Engli
 
 ---
 
+## 🎥 Demo Video
+
+https://github.com/user-attachments/assets/27a557bd-b9f0-46cd-8c25-1460e4049b55
+
+---
+
 ## 🚀 Features
 
 - Agentic pipeline (LangGraph + LangChain) orchestrating: search → download → profile → describe → plot
