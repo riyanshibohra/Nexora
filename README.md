@@ -32,7 +32,8 @@
 
 ## ✨ Overview
 
-Ask for data in plain English, and Nexora finds, profiles, and visualizes it for you.
+Nexora is an AI‑native “data universe explorer” that turns a plain‑English query into curated, profiled, and visualizable datasets. It runs an agentic workflow to search Kaggle, download relevant columnar files (CSV/XLSX/JSON), profile them with pandas, and generate safe matplotlib plots via LLM codegen - all surfaced through a clean FastAPI backend and a React + Three.js frontend.
+
 ---
 
 ## 🎥 Demo Video
