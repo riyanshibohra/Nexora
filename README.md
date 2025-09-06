@@ -149,15 +149,6 @@ Key endpoints:
 
 ---
 
-## 🔒 Safety & Reliability
-
-- Restricted Python REPL: no file IO/imports beyond plotting stack
-- Agg backend, deterministic sizing, and style for plots
-- Multi‑strategy CSV parsing and Excel via `openpyxl`/`xlrd`
-- SQLite WAL, transactional upserts, and indices
-
----
-
 ## 📦 Environment Variables
 
 Create a `.env` at the repo root:
